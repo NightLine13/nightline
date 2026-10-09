@@ -1,0 +1,2553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0e12">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Nightline">
+<title>Nightline</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0c0e12;--card:#161a22;--text:#f4f6f8;--muted:#8b93a1;--border:#262c38;--accent:#7c5cff;--win:#3dd68c;--loss:#ff5d73}
+html,body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+.wrap{max-width:460px;margin:0 auto;padding:18px 16px calc(110px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 16px}
+.top h1{font-size:24px;font-weight:700;letter-spacing:-.02em}
+.pill{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600}
+.pill:active{background:#1d2230}
+.view{display:none}.view.active{display:block}
+.hero{background:linear-gradient(160deg,#1b2030,#12151c);border:1px solid var(--border);border-radius:22px;padding:22px 20px}
+.label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.hero .big{font-size:40px;font-weight:700;letter-spacing:-.02em;margin:6px 0 6px;font-variant-numeric:tabular-nums}
+.hero .sub{font-size:14px;color:var(--muted)}
+.up{color:var(--win)}.down{color:var(--loss)}.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 14px 13px}
+.stat .val{font-size:20px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums}
+.section{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:22px 4px 8px;display:flex;justify-content:space-between}
+.list{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 14px;width:100%;text-align:left;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.row:active{background:#1b2029}
+.row .name{font-size:15px;font-weight:600;word-break:break-word}
+.row .meta{font-size:12px;color:var(--muted);margin-top:3px}
+.row .amt{font-size:15px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);font-size:14px;padding:16px 4px}
+.daynet{font-variant-numeric:tabular-nums}
+.bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom));width:calc(min(460px,100vw) - 24px);display:flex;gap:6px;padding:6px;border-radius:18px;background:rgba(22,26,34,.72);border:1px solid var(--border);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);z-index:20}
+.bar button{flex:1;min-width:0;padding:11px 0;border-radius:13px;font-size:14px;font-weight:600;color:var(--muted);white-space:nowrap}
+@media (max-width:374px){.bar{gap:4px;padding:5px}.bar button{font-size:13px}}
+.setcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-top:10px}
+.setcard .sk{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.setcard .f{margin:0}.setcard .f label{display:block;margin-bottom:8px}
+.setcard .ghost:first-of-type{margin-top:4px}
+.hint.about{margin:14px 4px 0}
+.prefrow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;border-top:1px solid rgba(38,44,56,.7)}
+.prefrow:first-child{border-top:0}
+.prefrow .pl{font-size:15px;font-weight:500;min-width:0}
+.prefrow .pd{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:1px}
+.sw{position:relative;width:51px;height:31px;flex:none;border-radius:999px;background:#3a4150;transition:background .2s;cursor:pointer}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.35);transition:transform .2s}
+.sw[aria-checked="true"]{background:var(--accent)}
+.sw[aria-checked="true"]::after{transform:translateX(20px)}
+.sw:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.resetlink{display:block;text-align:left;margin:0;color:#b9a8ff;font-size:14px;font-weight:600;padding:12px 0 2px;min-height:44px}
+.grid.one{grid-template-columns:1fr}
+[data-home][hidden],#homeGrid[hidden]{display:none !important}
+.homeempty{text-align:center;padding:48px 12px}
+.bar button.active{background:var(--accent);color:#fff}
+.scrim{position:fixed;inset:0;background:rgba(5,6,9,.6);opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;width:100%;max-width:460px;transform:translate(-50%,105%);transition:transform .25s ease;background:var(--card);border:1px solid var(--border);border-bottom:none;border-radius:22px 22px 0 0;padding:10px 18px calc(20px + env(safe-area-inset-bottom));z-index:31;max-height:92vh;overflow-y:auto}
+.sheet.open{transform:translate(-50%,0)}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 14px}
+.sheet h2{font-size:18px;font-weight:700;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.sheet h2 button{font-size:14px;font-weight:600;color:var(--muted)}
+.f{margin-bottom:12px}
+.f label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.f input,.f select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px;font-size:16px;color:var(--text);min-height:46px;-webkit-appearance:none;appearance:none}
+.f input:focus,.f select:focus{outline:none;border-color:var(--accent)}
+.f input.bad{border-color:var(--loss)}
+.two{display:flex;gap:10px}.two .f{flex:1;min-width:0}
+.err{color:var(--loss);font-size:12px;margin-top:5px;min-height:0}
+.seg{display:flex;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:4px}
+.seg button{flex:1;padding:9px 0;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--accent);color:#fff}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.save{width:100%;background:var(--accent);color:#fff;border-radius:14px;padding:14px;font-size:16px;font-weight:700;margin-top:6px}
+.save:active{opacity:.9}
+.ghost{width:100%;border:1px solid var(--border);border-radius:14px;padding:13px;font-size:15px;font-weight:600;margin-top:10px;background:var(--bg)}
+.danger{color:var(--loss)}
+.towin{font-size:13px;color:var(--muted);margin:-2px 0 12px;min-height:16px}
+.towin b{color:var(--text)}
+.row>div:first-child{min-width:0}
+.row .meta.one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg button:disabled{opacity:.45;cursor:default}
+.seg.sm{padding:3px}.seg.sm button{padding:6px 0;font-size:12px}
+.prow{display:flex;align-items:center;justify-content:space-between;margin:14px 4px 0;gap:10px}
+.prow .plabel{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bank{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-top:10px}
+.bank .bhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bank .bhead .label{margin:0}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.bgrid .k{font-size:11px;color:var(--muted);white-space:nowrap}
+.bgrid .v{font-size:16px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bgrid .n{font-size:11px;color:var(--muted);margin-top:2px}
+.bank .txl{border-top:1px solid var(--border)}
+.etog{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;margin-top:10px;padding:0 2px;border-top:1px solid var(--border);font-size:13px;font-weight:600;color:var(--muted);text-align:left}
+.etog .elbl{color:var(--text)}.etog .ecnt{color:var(--muted);font-weight:500}
+.etog .chev{width:18px;height:18px;flex:none;transition:transform .2s ease}
+.etog[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.etog:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.row.txrow{padding:10px 2px;border-bottom:1px solid var(--border)}
+.row.txrow .name{font-size:14px;color:var(--muted)}
+.row.txrow .amt{font-size:14px;color:var(--muted);font-weight:600}
+.list .row.txrow{padding:12px 14px}
+.bank .more{font-size:12px;color:var(--muted);padding:8px 2px 0}
+.bfoot{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:10px;font-size:12px;color:var(--muted)}
+.bfoot b{color:var(--text);font-size:14px;font-variant-numeric:tabular-nums}
+.prow.ptop{margin:2px 4px 10px}
+#periodSeg{width:120px;flex:none}
+.pnav{display:flex;align-items:center;min-width:0;margin-left:-14px}
+.parr{width:44px;height:44px;flex:none;display:grid;place-items:center;font-size:24px;line-height:1;color:var(--text);border-radius:12px;padding-bottom:3px}
+.parr:active:not(:disabled){background:rgba(255,255,255,.06)}
+.parr:disabled{color:var(--muted);opacity:.35;cursor:default}
+.parr:focus-visible,.pnow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.pnav .plabel{font-size:12px;color:#c3c8d1;font-variant-numeric:tabular-nums}
+.pnowrow{margin:-6px 4px 10px;display:flex}
+.pnowrow[hidden]{display:none}
+.pnow{min-height:32px;padding:0 14px;border-radius:999px;border:1px solid rgba(124,92,255,.45);background:rgba(124,92,255,.14);color:#c9bcff;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.hcar{overflow:hidden;border-radius:22px;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;outline:none}
+.hcar:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+.hcar.drag{cursor:grabbing}
+.htrack{display:flex;gap:12px;transition:transform .32s cubic-bezier(.2,.7,.2,1);will-change:transform}
+.htrack.nt{transition:none}
+.hslide{flex:0 0 100%;min-width:0}
+.htrack{align-items:flex-start}
+.hcar{transition:height .32s cubic-bezier(.2,.7,.2,1)}
+.hs2{min-height:min(340px,86vw);display:flex;flex-direction:column}
+.hs2 .hpair{margin-top:0}
+.hlist{touch-action:pan-y;margin-top:16px;border-top:1px solid var(--border);max-height:416px;overflow-y:auto;overscroll-behavior:contain;flex:1}
+.hrow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 2px;text-align:left;color:inherit;font:inherit;border-bottom:1px solid rgba(38,44,56,.7);cursor:pointer}
+.hrow:last-child{border-bottom:0}
+.hrow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:8px}
+.hrow .ty{font-size:15px;font-weight:600}
+.hrow .ts{font-size:12px;color:#aab1bd;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrow .nt{color:var(--muted)}
+.hrow .am{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.hempty{font-size:14px;color:var(--muted);padding:16px 2px 4px}
+.hfoot{display:flex;justify-content:flex-end;margin-top:12px}
+.hadd{min-height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--border);background:rgba(124,92,255,.14);color:#c9bcff;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.hadd:active{transform:scale(.97)}
+.hpair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.hpair>div,.hpair>span{min-width:0}
+.hpair>div+div,.hpair>span+span{border-left:1px solid var(--border);padding-left:14px}
+.hpair .hk{font-size:12px;color:var(--muted);font-weight:600}
+.hpair .big{font-size:clamp(24px,7.6vw,32px);margin:4px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hpair .sub{font-size:13px}
+.hdots{display:flex;justify-content:center;gap:2px;margin:4px 0 0}
+.hdots button{width:28px;height:28px;display:flex;align-items:center;justify-content:center;padding:0}
+.hdots button::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--border);transition:background .2s,width .2s}
+.hdots button[aria-current="true"]::before{background:var(--accent);width:18px;border-radius:4px}
+.stat.wide{margin-top:10px}
+.stat .psub{font-size:11.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.leg{border:1px solid var(--border);border-radius:16px;padding:12px 12px 2px;margin-bottom:10px}
+.leg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.leg-x{color:var(--muted);font-size:18px;width:28px;height:24px;line-height:1;border-radius:8px}
+.add{margin:0 0 12px;border-style:dashed}
+.gp{margin:-2px 0 12px}
+.gp:empty{display:none}
+.gp-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.gp-link{color:var(--accent);font-size:12px;font-weight:600;text-transform:none;letter-spacing:0;padding:2px 0}
+.gp-filter{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:9px 12px;font-size:14px;color:var(--text);margin-bottom:6px}
+.gp-filter:focus{outline:none;border-color:var(--accent)}
+.gp-list{background:var(--bg);border:1px solid var(--border);border-radius:14px;max-height:232px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.gp-row{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}
+.gp-row:last-child{border-bottom:none}
+.gp-row:active{background:#11141a}
+.gp-row .gm{font-size:14px;font-weight:600;min-width:0}
+.gp-row .gl{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--muted);margin-right:6px}
+.gp-row .gs{font-size:12px;color:var(--muted);white-space:nowrap;text-align:right;flex-shrink:0}
+.gp-sel{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:12px}
+.gp-sel .gm{font-size:15px;font-weight:600}
+.gp-sel .gs{font-size:12px;color:var(--muted);margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{border:1px solid var(--border);border-radius:999px;padding:6px 11px;font-size:13px;font-weight:600;color:var(--muted)}
+.chip b{color:var(--text);font-weight:700;margin-left:4px}
+.chip:active{border-color:var(--accent);color:var(--text)}
+.gp-note{font-size:11px;color:var(--muted);margin-top:8px}
+.gp-msg{font-size:13px;color:var(--muted)}
+.gp-msg .gp-link{margin-left:6px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px}
+.navb{width:40px;height:36px;border-radius:12px;border:1px solid var(--border);background:var(--card);font-size:18px;line-height:1;color:var(--text);flex-shrink:0}
+.navb:active{background:#1d2230}
+.cal-title{text-align:center;min-width:0}
+.cal-title .m{font-size:17px;font-weight:700}
+.cal-sum{font-size:12px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.cal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:8px 6px 6px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.dow{font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:2px 0 6px;letter-spacing:.06em}
+.cd{min-height:60px;min-width:0;border-radius:10px;padding:5px 1px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid transparent;color:var(--text);overflow:hidden}
+.cd.blank{visibility:hidden;pointer-events:none}
+.cd .cn{font-size:12px;font-weight:600;color:var(--muted)}
+.cd.has .cn{color:var(--text)}
+.cd.today{background:rgba(124,92,255,.08)}
+.cd.today .cn{color:var(--accent)}
+.cd.sel{border-color:var(--accent)}
+.cd:active{background:#1b2029}
+.cd .cp{font-size:11px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cd .cp.pend{color:var(--muted);font-weight:600;font-size:9.5px}
+.cd .cw{font-size:9.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.cd .cdot{width:4px;height:4px;border-radius:50%;background:var(--muted);opacity:.7;margin-top:auto}
+.row.legrow .name{color:var(--muted);font-weight:600}
+.pill.sm{padding:4px 11px;font-size:12px}
+.hbtns{display:flex;gap:6px}
+.sheet h2 .hr{display:flex;align-items:center;gap:12px}
+.paste{min-height:84px;border:1px dashed var(--border);border-radius:14px;background:var(--bg);padding:14px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;outline:none;-webkit-user-select:text;user-select:text}
+.paste:focus{border-color:var(--accent)}
+.paste img{max-height:120px;max-width:100%;border-radius:10px;border:1px solid var(--border)}
+.f textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px;font-size:14px;line-height:1.4;color:var(--text);resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.f textarea:focus{outline:none;border-color:var(--accent)}
+.scan-status{font-size:13px;color:var(--muted);margin:2px 2px 10px;min-height:18px}
+.scan-sum{font-size:13px;color:var(--muted);margin:0 2px 8px;line-height:1.5}
+.scan-sum b{color:var(--text)}
+.conf{font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap}
+.conf.hi{color:var(--win)}.conf.lo{color:var(--loss)}
+.unp{font-size:12px;color:var(--muted);margin:6px 2px 0;line-height:1.6;word-break:break-word}
+.sheet.full{height:94vh;max-height:94vh}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;letter-spacing:.02em;background:var(--bg);border:1px solid var(--border);color:var(--muted)}
+.badge.win{color:var(--win);border-color:rgba(61,214,140,.4);background:rgba(61,214,140,.1)}
+.badge.loss{color:var(--loss);border-color:rgba(255,93,115,.4);background:rgba(255,93,115,.1)}
+.det-head{display:flex;align-items:center;gap:10px;margin:-4px 0 14px;font-size:13px;color:var(--muted)}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.det-grid>div{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:12px}
+.det-grid .k{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.det-grid .v{font-size:18px;font-weight:700;margin-top:4px}
+.dleg{position:relative;background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:12px 14px 12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;overflow:hidden}
+.dleg::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--border)}
+.dleg.win{background:rgba(61,214,140,.08);border-color:rgba(61,214,140,.35)}.dleg.win::before{background:var(--win)}
+.dleg.loss{background:rgba(255,93,115,.08);border-color:rgba(255,93,115,.35)}.dleg.loss::before{background:var(--loss)}
+.dleg .name{font-weight:600;font-size:15px}
+.dleg .meta{font-size:12px;color:var(--muted);margin-top:3px}
+.dleg .lr{font-size:12px;font-weight:700;white-space:nowrap;color:var(--muted)}
+.dleg.win .lr{color:var(--win)}.dleg.loss .lr{color:var(--loss)}
+.slipimg{display:block;width:96px;max-height:180px;object-fit:cover;object-position:top;border-radius:12px;border:1px solid var(--border);cursor:zoom-in}
+.slipbox{display:flex;gap:12px;align-items:flex-start;margin-bottom:6px}
+.slipbox .meta{font-size:12px;color:var(--muted);line-height:1.5}
+.det-actions{display:flex;gap:10px;margin-top:16px}
+.det-actions .ghost{margin-top:0}
+.imgview{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:60;display:none;overflow:auto;padding:16px;text-align:center}
+.imgview.open{display:block}
+.imgview img{max-width:100%;border-radius:12px}
+.auth{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;display:none;padding:calc(48px + env(safe-area-inset-top)) 20px 32px}
+.auth.open{display:block}
+.auth-in{max-width:420px;margin:0 auto}
+.auth h1{font-size:34px;font-weight:800;letter-spacing:-.02em}
+.auth .tag{color:var(--muted);font-size:15px;margin:6px 0 26px;line-height:1.45}
+.auth-card{background:linear-gradient(160deg,#1b2030,#12151c);border:1px solid var(--border);border-radius:22px;padding:20px 18px 18px}
+.auth-msg{font-size:13px;min-height:18px;margin:2px 2px 10px;line-height:1.45;color:var(--muted)}
+.auth-msg.err{color:var(--loss)}.auth-msg.ok{color:var(--win)}
+.linkbtn{display:block;margin:22px auto 0;font-size:15px;font-weight:600;color:var(--text);padding:10px}
+.linkbtn.sm{margin:12px auto 0;font-size:14px;color:var(--muted);font-weight:500;padding:6px 10px}
+.auth .ftitle{font-size:18px;font-weight:700;margin:0 2px 6px}
+.auth .fsub{font-size:13px;color:var(--muted);margin:0 2px 14px;line-height:1.45}
+#pwMsg{margin-top:2px}
+.auth .fine{font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
+.acct{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px}
+.acct .av{width:38px;height:38px;border-radius:50%;background:rgba(124,92,255,.18);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none}
+.acct .who{min-width:0;flex:1}
+.acct .em{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acct .sy{font-size:12px;color:var(--muted);margin-top:2px}
+.acct .sy.err{color:var(--loss)}
+.acct .sy.ok{color:var(--win)}
+.badge.co{color:#ffb547;border-color:rgba(255,181,71,.4);background:rgba(255,181,71,.1)}
+.amt.co{color:#ffb547}
+.cobadge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#ffb547;background:rgba(255,181,71,.12);border:1px solid rgba(255,181,71,.35);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:2px}
+#resSeg button{font-size:13px}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 14px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:40}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>Nightline</h1><div class="hbtns"><button class="pill" id="scanHome">Scan</button></div></div>
+
+  <section class="view active" id="v-home">
+    <div class="prow ptop" data-home="period"><div class="pnav"><button type="button" class="parr" id="pPrev" aria-label="Previous week">&lsaquo;</button><div class="plabel" id="pRange" aria-live="polite"></div><button type="button" class="parr" id="pNext" aria-label="Next week" disabled>&rsaquo;</button></div><div class="seg sm" id="periodSeg" role="tablist" aria-label="Period"><button type="button" data-p="week" role="tab">Week</button><button type="button" data-p="month" role="tab">Month</button></div></div>
+    <div class="pnowrow" id="pNowRow" data-home="period" hidden><button type="button" class="pnow" id="pNow">This week</button></div>
+    <div class="hcar" id="heroCar" data-home="carousel" role="region" aria-roledescription="carousel" aria-label="This week summary" tabindex="0">
+      <div class="htrack" id="heroTrack">
+        <div class="hero hslide clone" aria-hidden="true" data-clone="1"></div>
+        <div class="hero hslide" id="hs0" role="group" aria-roledescription="slide" aria-label="1 of 2: This week profit">
+          <div class="label" id="hLbl">This week profit</div>
+          <div class="big" id="hNet">$0.00</div>
+          <div class="sub" id="hSub">0-0-0 · ROI —</div>
+        </div>
+        <div class="hero hslide hs2" id="hs1" role="group" aria-roledescription="slide" aria-label="2 of 2: This week deposits and withdrawals">
+          <div class="hpair">
+            <div><div class="hk">Deposit</div><div class="big" id="hDep">$0.00</div></div>
+            <div><div class="hk">Withdraw</div><div class="big" id="hWd">$0.00</div></div>
+          </div>
+          <div class="hlist" id="txList"></div>
+          <div class="hfoot"><button type="button" class="hadd" id="txAdd" aria-label="Add deposit or withdrawal">+ Add</button></div>
+        </div>
+        <div class="hero hslide clone" aria-hidden="true" data-clone="0"></div>
+      </div>
+    </div>
+    <div class="hdots" id="heroDots" data-home="carousel" role="group" aria-label="Choose summary"><button type="button" data-i="0" aria-label="Profit"></button><button type="button" data-i="1" aria-label="Deposits and withdrawals"></button></div>
+    <div class="grid" id="homeGrid">
+      <div class="stat" data-home="wagered"><div class="label" id="lStaked">Wagered this week</div><div class="val" id="sStaked">$0.00</div><div class="psub" id="sPeriodCnt">0 bets</div></div>
+      <div class="stat" data-home="winrate"><div class="label" id="lWin">Win rate this week</div><div class="val" id="sWin">—</div><div class="psub" id="sWinAll">All-time —</div></div>
+    </div>
+    <div class="stat wide" id="bankStat" data-home="bankroll"><div class="label">Bankroll estimate</div><div class="val" id="sBank">—</div><div class="psub" id="sBankSub">Log a deposit to start</div></div>
+    <div class="stat wide" data-home="record"><div class="label">All-time record</div><div class="val" id="sRecord">0-0-0</div></div>
+    <div class="section" data-home="recent">Recent</div>
+    <div id="recent" data-home="recent"></div>
+    <div class="empty homeempty" id="homeEmpty" hidden>Your home screen is empty — turn items on in Settings.</div>
+  </section>
+
+  <section class="view" id="v-cal">
+    <div class="cal-head">
+      <button class="navb" id="calPrev" aria-label="Previous month">‹</button>
+      <div class="cal-title"><div class="m" id="calMonth"></div><div class="cal-sum" id="calSum"></div></div>
+      <button class="navb" id="calNext" aria-label="Next month">›</button>
+    </div>
+    <div class="cal"><div class="cal-grid" id="calGrid"></div></div>
+    <div id="dayDetail"></div>
+  </section>
+
+  <section class="view" id="v-set" aria-label="Settings">
+    <div class="section">Preferences</div>
+    <div class="setcard"><div class="sk">Home screen</div>
+      <div id="homePrefs" role="group" aria-label="Home screen items"></div>
+      <button type="button" class="resetlink" id="homeReset">Reset to default</button>
+    </div>
+    <div class="section">Settings</div>
+    <div class="setcard"><div class="sk">Odds style</div>
+      <div class="seg" id="fmtSeg"><button type="button" data-f="american">American (-110)</button><button type="button" data-f="decimal">Decimal (1.91)</button></div>
+    </div>
+    <div class="setcard"><div class="sk">Account</div>
+  <div id="acct"></div>
+  </div>
+    <div class="setcard"><div class="sk">Backup</div>
+  <button type="button" class="ghost" id="expBtn" style="margin-top:0">Export JSON backup</button>
+  <button type="button" class="ghost" id="impBtn">Import JSON backup</button>
+  <input type="file" id="impFile" accept="application/json,.json" hidden>
+  <button type="button" class="ghost danger" id="clrBtn">Clear all bets</button>
+  </div>
+    <div class="hint about">Nightline only records bets you place elsewhere. Without an account, data stays in this browser. Backups include scanned slip screenshots (about 100–200 KB each).</div>
+  </section>
+</div>
+
+<nav class="bar">
+  <button data-nav="home" class="active">Home</button>
+  <button data-nav="log">Log</button>
+  <button data-nav="cal">Calendar</button>
+  <button data-nav="set">Settings</button>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- Log sheet -->
+<div class="sheet" id="logSheet" role="dialog" aria-label="Log a bet">
+  <div class="grab"></div>
+  <h2><span id="logTitle">Log a bet</span><span class="hr"><button type="button" class="pill sm" id="scanBtn">Scan slip</button><button type="button" data-close>Close</button></span></h2>
+  <form id="logForm" novalidate autocomplete="off">
+    <div class="f"><div class="seg" id="typeSeg"><button type="button" data-t="single">Single</button><button type="button" data-t="parlay">Parlay</button></div></div>
+    <div class="two">
+      <div class="f"><label for="iDate">Date</label><input type="date" id="iDate"></div>
+      <div class="f"><label for="iStake">Stake</label><input id="iStake" inputmode="decimal" placeholder="100"><div class="err" id="eStake"></div></div>
+    </div>
+    <div id="singleBox">
+      <div class="two">
+        <div class="f"><label for="iSport">Sport</label><select id="iSport"></select><div class="err" id="eSport"></div></div>
+        <div class="f"><label for="iOdds" class="odds-lbl">Odds</label><input id="iOdds" class="odds-in"><div class="err" id="eOdds"></div></div>
+      </div>
+      <div class="f" id="otherBox" hidden><input id="iOther" maxlength="30" placeholder="Sport name"></div>
+      <div class="gp" id="gpSingle"></div>
+      <div class="f"><label for="iDesc">Description</label><input id="iDesc" maxlength="120" placeholder="Chiefs -3.5"><div class="err" id="eDesc"></div></div>
+    </div>
+    <div id="parlayBox" hidden>
+      <div id="legs"></div>
+      <button type="button" class="ghost add" id="addLeg">+ Add leg</button>
+    </div>
+    <div class="f"><label>Result</label>
+      <div class="seg" id="resSeg"><button type="button" data-r="pending">Pending</button><button type="button" data-r="win">Win</button><button type="button" data-r="loss">Loss</button><button type="button" data-r="push">Push</button><button type="button" data-r="cashout">Cash out</button></div>
+      <div class="hint" id="resHint" hidden></div>
+      <div class="f" id="coBox" hidden style="margin-top:12px"><label for="iCash">Cash-out amount</label><input id="iCash" inputmode="decimal" placeholder="Total received, e.g. 80.00" autocomplete="off"><div class="err" id="eCash"></div></div>
+    </div>
+    <div class="towin" id="toWin"></div>
+    <button type="submit" class="save" id="saveBtn">Save</button>
+    <button type="button" class="ghost danger" id="delBtn" style="display:none">Delete bet</button>
+  </form>
+
+</div>
+
+<!-- Deposit / withdrawal sheet -->
+<div class="sheet" id="txSheet" role="dialog" aria-label="Deposit or withdrawal">
+  <div class="grab"></div>
+  <h2><span id="txTitle">Add deposit</span><button type="button" data-close>Close</button></h2>
+  <form id="txForm" novalidate autocomplete="off">
+    <div class="f"><div class="seg" id="txType"><button type="button" data-k="deposit" class="on">Deposit</button><button type="button" data-k="withdrawal">Withdraw</button></div></div>
+    <div class="two">
+      <div class="f"><label for="tAmt">Amount</label><input id="tAmt" inputmode="decimal" placeholder="100.00"><div class="err" id="eAmt"></div></div>
+      <div class="f"><label for="tDate">Date</label><input type="date" id="tDate"><div class="err" id="eTDate"></div></div>
+    </div>
+    <div class="f"><label for="tNote">Sportsbook / note <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label><input id="tNote" maxlength="80" placeholder="DraftKings"></div>
+    <button type="submit" class="save" id="txSave">Save deposit</button>
+    <button type="button" class="ghost danger" id="txDel" style="display:none">Delete</button>
+    <div class="hint" style="margin-top:12px">Tracking only — money moved at your sportsbook. Each entry is kept separately; deposits and withdrawals don’t change your betting profit, record or ROI.</div>
+  </form>
+</div>
+<!-- Scan slip sheet -->
+<div class="sheet" id="scanSheet" role="dialog" aria-label="Scan bet slip">
+  <div class="grab"></div>
+  <h2><span>Scan slip</span><button type="button" id="scanBack">Back</button></h2>
+  <div class="paste" id="pasteZone" contenteditable="true" role="textbox" aria-label="Paste a screenshot or slip text" spellcheck="false"><span id="pasteHint">Paste a screenshot or slip text here<br><span style="font-size:12px">⌘V / Ctrl+V, or long-press → Paste</span></span></div>
+  <button type="button" class="ghost" id="pickImg">Choose screenshot</button>
+  <input type="file" id="imgFile" accept="image/*" hidden>
+  <div class="f" style="margin-top:12px"><label for="slipText">Slip text</label><textarea id="slipText" rows="5" placeholder="Or paste / type the slip text. You can fix anything here."></textarea></div>
+  <div class="scan-status" id="scanStatus"></div>
+  <div id="scanPreview"></div>
+  <button type="button" class="save" id="fillBtn" disabled>Fill bet</button>
+  <div class="hint" style="margin-top:10px">Nothing is saved until you review it and tap Save. Screenshots are read on this device (the text reader downloads once).</div>
+</div>
+<!-- Bet detail sheet -->
+<div class="sheet full" id="detSheet" role="dialog" aria-label="Bet details">
+  <div class="grab"></div>
+  <h2><span id="detTitle">Bet</span><button type="button" data-close>Close</button></h2>
+  <div id="detBody"></div>
+  <div class="det-actions"><button type="button" class="ghost" id="detEdit">Edit</button><button type="button" class="ghost danger" id="detDel">Delete</button></div>
+</div>
+<div class="imgview" id="imgView" role="dialog" aria-label="Slip screenshot"><img id="imgFull" alt="Slip screenshot"></div>
+<!-- Sign-in screen -->
+<div class="auth" id="authView" role="dialog" aria-label="Sign in">
+  <div class="auth-in">
+    <h1>Nightline</h1>
+    <div class="tag">Your betting logbook. Sign in to keep your bets and slip screenshots synced across devices.</div>
+    <form class="auth-card" id="authForm" novalidate>
+      <div class="f"><label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com"></div>
+      <div class="f"><label for="aPass">Password</label><input id="aPass" type="password" autocomplete="current-password" placeholder="At least 6 characters"></div>
+      <div class="auth-msg" id="authMsg" role="status"></div>
+      <button type="submit" class="save" id="aSignIn">Sign in</button>
+      <button type="button" class="ghost" id="aSignUp">Create account</button>
+      <button type="button" class="linkbtn sm" id="aForgot">Forgot password?</button>
+    </form>
+    <form class="auth-card" id="forgotForm" novalidate hidden>
+      <div class="ftitle">Reset your password</div>
+      <div class="fsub">Enter the email you signed up with and we’ll send you a link to set a new password.</div>
+      <div class="f"><label for="fEmail">Email</label><input id="fEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com"></div>
+      <div class="auth-msg" id="fMsg" role="status"></div>
+      <button type="submit" class="save" id="fSend">Send reset link</button>
+      <button type="button" class="linkbtn sm" id="fBack">Back to sign in</button>
+    </form>
+    <button type="button" class="linkbtn" id="aLocal">Continue without account</button>
+    <div class="fine">Bets stay on this device only. You can sign in later from Settings.</div>
+  </div>
+</div>
+<!-- Set / change password -->
+<div class="sheet" id="pwSheet" role="dialog" aria-label="Set a new password">
+  <div class="grab"></div>
+  <h2><span id="pwTitle">Set a new password</span><button type="button" data-close>Close</button></h2>
+  <form id="pwForm" novalidate autocomplete="off">
+    <div class="hint" id="pwSub" style="font-size:13px;margin:0 2px 12px"></div>
+    <input type="email" id="pwUser" autocomplete="username" hidden>
+    <div class="f"><label for="pNew">New password</label><input id="pNew" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
+    <div class="f"><label for="pConf">Confirm new password</label><input id="pConf" type="password" autocomplete="new-password" placeholder="Type it again"></div>
+    <div class="auth-msg" id="pwMsg" role="status"></div>
+    <button type="submit" class="save" id="pwSave">Save new password</button>
+    <button type="button" class="ghost" id="pwResend" hidden>Send a new reset link</button>
+  </form>
+</div>
+<!-- Move local bets -->
+<div class="sheet" id="moveSheet" role="dialog" aria-label="Move local bets">
+  <div class="grab"></div>
+  <h2><span>Bets on this device</span><button type="button" data-close>Not now</button></h2>
+  <div class="hint" id="moveText" style="font-size:14px;line-height:1.5;margin:0 2px 6px"></div>
+  <button type="button" class="save" id="moveBtn">Move</button>
+  <button type="button" class="ghost" id="moveSkip">Keep them on this device only</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script id="core">
+/* Pure logic — tested in node */
+function round2(n){ return Math.round((n + Number.EPSILON) * 100) / 100; }
+function americanToDecimal(a){ a = Number(a); return a > 0 ? 1 + a / 100 : 1 + 100 / Math.abs(a); }
+function decimalToAmerican(d){ d = Number(d); return d >= 2 ? Math.round((d - 1) * 100) : -Math.round(100 / (d - 1)); }
+function parseOdds(text, style){
+  var s = String(text == null ? '' : text).trim().replace(/\s+/g, '').replace(/^\u2212/, '-');
+  if (!s) return { ok:false, error:'Enter odds' };
+  if (style === 'american'){
+    if (!/^[+-]?\d+$/.test(s)) return { ok:false, error:'Use whole numbers like -110 or +150' };
+    var a = Number(s);
+    if (a > -100 && a < 100) return { ok:false, error:'American odds can\u2019t be between -99 and 99' };
+    return { ok:true, decimal: americanToDecimal(a) };
+  }
+  s = s.replace(',', '.');
+  if (!/^\d+(\.\d+)?$/.test(s)) return { ok:false, error:'Use a number like 1.91' };
+  var d = Number(s);
+  if (!(d >= 1.01)) return { ok:false, error:'Decimal odds must be at least 1.01' };
+  return { ok:true, decimal: d };
+}
+function parseStake(text){
+  var s = String(text == null ? '' : text).trim().replace(/[$,\s]/g, '');
+  if (!/^(\d+(\.\d{1,2})?|\.\d{1,2})$/.test(s)) return { ok:false, error: s ? 'Use an amount like 25 or 25.50' : 'Enter a stake' };
+  var n = Number(s); if (!(n > 0)) return { ok:false, error:'Stake must be more than 0' };
+  return { ok:true, value: round2(n) };
+}
+function formatOdds(decimal, style){
+  if (style === 'american'){ var a = decimalToAmerican(decimal); return (a > 0 ? '+' : '') + a; }
+  return Number(decimal).toFixed(2);
+}
+/* Parlays: b.type === 'parlay', b.legs = [{odds, result}], optional b.override ('win'|'loss'|'push') */
+function combinedOdds(legs){ return legs.reduce(function(p, l){ return p * Number(l.odds); }, 1); }
+function parlayAutoResult(legs){
+  if (legs.some(function(l){ return l.result === 'loss'; })) return 'loss';
+  if (legs.some(function(l){ return l.result !== 'win' && l.result !== 'push'; })) return 'pending';
+  if (legs.every(function(l){ return l.result === 'push'; })) return 'push';
+  return 'win';
+}
+/* pushed (and lost) legs drop out of the payout */
+function parlayWinDecimal(legs){ return legs.reduce(function(p, l){ return (l.result === 'push' || l.result === 'loss') ? p : p * Number(l.odds); }, 1); }
+function effectiveResult(b){ return b.type === 'parlay' ? (b.override || parlayAutoResult(b.legs || [])) : b.result; }
+function profit(b){
+  var r = effectiveResult(b);
+  if (r === 'win') return round2(b.stake * ((b.type === 'parlay' ? parlayWinDecimal(b.legs) : b.odds) - 1));
+  if (r === 'loss') return -round2(b.stake);
+  if (r === 'cashout') return round2(Number(b.cashoutAmount || 0) - (b.bonusBet ? 0 : b.stake));   /* bonus bet: stake was never ours */
+  return 0; /* push, pending */
+}
+/* filterMonth: 'YYYY-MM' or null for all-time */
+function stats(bets, filterMonth){
+  var r = { net:0, staked:0, wins:0, losses:0, pushes:0, cashouts:0, pending:0, risked:0, count:0, winRate:null, roi:null };
+  bets.forEach(function(b){
+    if (filterMonth && String(b.date).slice(0,7) !== filterMonth) return;
+    var res = effectiveResult(b);
+    r.count++; r.staked += b.stake; r.net += profit(b);
+    if (res === 'win'){ r.wins++; r.risked += b.stake; }
+    else if (res === 'loss'){ r.losses++; r.risked += b.stake; }
+    else if (res === 'push') r.pushes++;
+    else if (res === 'cashout'){ r.cashouts++; r.risked += b.stake; }
+    else r.pending++;
+  });
+  r.net = round2(r.net); r.staked = round2(r.staked); r.risked = round2(r.risked);
+  if (r.wins + r.losses) r.winRate = r.wins / (r.wins + r.losses);
+  if (r.risked > 0) r.roi = r.net / r.risked;
+  return r;
+}
+/* "5-3-1" or "5-3-1 · 2 CO" */
+function recordText(s){ return s.wins + '-' + s.losses + '-' + s.pushes + (s.cashouts ? ' \u00b7 ' + s.cashouts + ' CO' : ''); }
+function money(n, signed){
+  var v = round2(n), s = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  return (v < 0 ? '-' : signed && v > 0 ? '+' : '') + '$' + s;
+}
+function groupByDay(bets){
+  var m = {};
+  bets.forEach(function(b){ (m[b.date] = m[b.date] || []).push(b); });
+  return Object.keys(m).sort().reverse().map(function(d){
+    var list = m[d].sort(function(a, b){ return (b.created || 0) - (a.created || 0); });
+    return { date:d, bets:list, net: round2(list.reduce(function(s, b){ return s + profit(b); }, 0)) };
+  });
+}
+/* ---- ESPN public scoreboard + moneylines (free public data; informational) ---- */
+var GAME_FEEDS = {
+  'NFL':['football/nfl'], 'NBA':['basketball/nba'], 'WNBA':['basketball/wnba'], 'MLB':['baseball/mlb'], 'NHL':['hockey/nhl'],
+  'NCAAF':['football/college-football'], 'NCAAB':['basketball/mens-college-basketball'],
+  'Soccer':['soccer/eng.1','soccer/usa.1','soccer/esp.1','soccer/ita.1','soccer/ger.1','soccer/fra.1','soccer/uefa.champions','soccer/uefa.europa','soccer/mex.1']
+};
+var FEED_LABEL = { 'soccer/eng.1':'EPL','soccer/usa.1':'MLS','soccer/esp.1':'LALIGA','soccer/ita.1':'SERIE A','soccer/ger.1':'BUNDESLIGA','soccer/fra.1':'LIGUE 1','soccer/uefa.champions':'UCL','soccer/uefa.europa':'UEL','soccer/mex.1':'LIGA MX' };
+var FEED_PARAMS = { 'football/college-football':'&limit=300', 'basketball/mens-college-basketball':'&groups=50&limit=400' };
+function espnUrl(feed, ymd){ return 'https://site.api.espn.com/apis/site/v2/sports/' + feed + '/scoreboard?dates=' + String(ymd).replace(/-/g, '') + (FEED_PARAMS[feed] || ''); }
+function parseScoreboard(json, feed){
+  var evs = (json && Array.isArray(json.events)) ? json.events : [];
+  return evs.map(function(e){
+    var c = e && e.competitions && e.competitions[0], comps = (c && c.competitors) || [];
+    var home = comps.find(function(x){ return x.homeAway === 'home'; }), away = comps.find(function(x){ return x.homeAway === 'away'; });
+    if (!home || !away || !home.team || !away.team) return null;
+    var st = (e.status && e.status.type) || (c.status && c.status.type) || {};
+    var team = function(x){ return { name: x.team.displayName || x.team.name || '?', short: x.team.shortDisplayName || x.team.name || x.team.displayName || '?', abbr: x.team.abbreviation || '', score: x.score != null ? String(x.score) : '' }; };
+    var state = st.state || 'pre';
+    return { id: String(e.id), league: feed, label: FEED_LABEL[feed] || '', start: e.date || (c && c.date) || '', state: state, detail: st.shortDetail || st.detail || '', away: team(away), home: team(home), odds: state === 'pre' ? scoreboardOdds(c) : null };
+  }).filter(Boolean);
+}
+/* ---- Moneyline odds from ESPN (free public data; informational) ---- */
+function parseAmericanML(v){
+  if (v == null) return null;
+  if (typeof v === 'object') v = v.american != null ? v.american : v.alternateDisplayValue != null ? v.alternateDisplayValue : v.odds;
+  var s = String(v).trim().toUpperCase();
+  if (s === 'EVEN' || s === 'EV' || s === 'PK') return 100;
+  if (!/^[+-]?\d+(\.\d+)?$/.test(s)) return null;   /* 'OFF', '', etc. */
+  var n = Math.round(Number(s));
+  return Math.abs(n) >= 100 ? n : null;
+}
+function cleanProvider(n){ n = String(n || '').trim(); return n === 'Draft Kings' ? 'DraftKings' : n; }
+function mlSide(ml, side){ var x = ml && ml[side]; if (!x) return null; return parseAmericanML((x.current || x.close || x.open || {}).odds); }
+/* From scoreboard competitions[0] (only meaningful pre-game) */
+function scoreboardOdds(comp){
+  var list = (comp && comp.odds) || [];
+  for (var i = 0; i < list.length; i++){
+    var o = list[i] || {}, ml = o.moneyline;
+    var home = mlSide(ml, 'home'), away = mlSide(ml, 'away'), draw = mlSide(ml, 'draw');
+    if (home == null) home = parseAmericanML(o.homeTeamOdds && o.homeTeamOdds.moneyLine);
+    if (away == null) away = parseAmericanML(o.awayTeamOdds && o.awayTeamOdds.moneyLine);
+    if (draw == null) draw = parseAmericanML(o.drawOdds && o.drawOdds.moneyLine);
+    if (home != null || away != null) return { provider: cleanProvider(o.provider && o.provider.name), home: home, away: away, draw: draw };
+  }
+  return null;
+}
+/* From sports.core.api .../competitions/{id}/odds */
+function coreOdds(json){
+  var items = (json && json.items) || [];
+  for (var i = 0; i < items.length; i++){
+    var it = items[i] || {}, h = it.homeTeamOdds || {}, a = it.awayTeamOdds || {}, d = it.drawOdds || {};
+    var home = parseAmericanML(h.current && h.current.moneyLine), away = parseAmericanML(a.current && a.current.moneyLine);
+    if (home == null) home = parseAmericanML(h.moneyLine);
+    if (away == null) away = parseAmericanML(a.moneyLine);
+    var draw = parseAmericanML(d.current && d.current.moneyLine); if (draw == null) draw = parseAmericanML(d.moneyLine);
+    if (home != null || away != null) return { provider: cleanProvider(it.provider && it.provider.name), home: home, away: away, draw: draw };
+  }
+  return null;
+}
+function coreOddsUrl(feed, eventId){ var p = String(feed).split('/'); return 'https://sports.core.api.espn.com/v2/sports/' + p[0] + '/leagues/' + p[1] + '/events/' + eventId + '/competitions/' + eventId + '/odds'; }
+function matchupText(g){ return g.away.name + ' @ ' + g.home.name; }
+/* ---- Calendar helpers: a bet (single or parlay) counts once, on its bet date ---- */
+function legDate(l, b){ return l && /^\d{4}-\d{2}-\d{2}$/.test(l.date) ? l.date : b.date; }
+function dayTotals(bets){
+  var m = {};
+  bets.forEach(function(b){
+    var d = m[b.date] || (m[b.date] = { net:0, wagered:0, count:0, settled:0 });
+    d.count++; d.wagered += b.stake; d.net += profit(b);
+    if (effectiveResult(b) !== 'pending') d.settled++;
+  });
+  Object.keys(m).forEach(function(k){ m[k].net = round2(m[k].net); m[k].wagered = round2(m[k].wagered); });
+  return m;
+}
+function monthTotals(bets, ym){
+  var r = { net:0, wagered:0, count:0, settled:0 };
+  bets.forEach(function(b){ if (String(b.date).slice(0,7) !== ym) return; r.count++; r.wagered += b.stake; r.net += profit(b); if (effectiveResult(b) !== 'pending') r.settled++; });
+  r.net = round2(r.net); r.wagered = round2(r.wagered); return r;
+}
+/* Home period: 'week' = Monday..Sunday containing `day`, 'month' = calendar month. Dates are local 'YYYY-MM-DD' strings. */
+function periodRange(kind, day){
+  var p = String(day).split('-').map(Number);
+  if (kind === 'week'){
+    var d = new Date(Date.UTC(p[0], p[1]-1, p[2])), back = (d.getUTCDay() + 6) % 7;   /* Mon=0 .. Sun=6 */
+    var f = function(x){ return x.toISOString().slice(0,10); };
+    var s = new Date(d.getTime() - back*864e5), e = new Date(s.getTime() + 6*864e5);
+    return { kind:'week', start:f(s), end:f(e) };
+  }
+  var last = new Date(Date.UTC(p[0], p[1], 0)).getUTCDate(), ym = String(day).slice(0,7);
+  return { kind:'month', start: ym + '-01', end: ym + '-' + (last < 10 ? '0' : '') + last };
+}
+/* period `off` steps from the one containing `day` (0 = current, -1 = previous ...); weeks Mon–Sun, months by calendar month (UTC date math) */
+function periodShift(kind, day, off){
+  var cur = periodRange(kind, day), p = cur.start.split('-').map(Number); off = Math.round(Number(off) || 0);
+  if (kind === 'week') return periodRange('week', new Date(Date.UTC(p[0], p[1]-1, p[2]) + off * 7 * 864e5).toISOString().slice(0,10));
+  var m = p[0] * 12 + (p[1] - 1) + off, y = Math.floor(m / 12), mo = m - y * 12 + 1;
+  return periodRange('month', y + '-' + (mo < 10 ? '0' : '') + mo + '-01');
+}
+/* wording for a period: title ('This week' / 'Last week' / 'Week of Sep 21'), phrase for stat labels, word for empty lines */
+function periodName(kind, off, rg, day){
+  var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], FM = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var a = rg.start.split('-').map(Number), thisYear = String(day || '').slice(0,4) === String(a[0]);
+  if (!off) return kind === 'week' ? { title:'This week', phrase:'this week', empty:'this week' } : { title:'This month', phrase:'this month', empty:'this month' };
+  if (off === -1) return kind === 'week' ? { title:'Last week', phrase:'last week', empty:'last week' } : { title:'Last month', phrase:'last month', empty:'last month' };
+  if (kind === 'week'){ var w = M[a[1]-1] + ' ' + a[2] + (thisYear ? '' : ', ' + a[0]); return { title:'Week of ' + w, phrase:'week of ' + w, empty:'that week' }; }
+  var mn = FM[a[1]-1] + ' ' + a[0]; return { title:mn, phrase:'in ' + mn, empty:'that month' };
+}
+/* same attribution as the calendar: bet's placed date; profit from settled bets (incl. cash-outs), wagered = every stake placed in the period */
+function periodTotals(bets, range){
+  var r = { net:0, wagered:0, risked:0, count:0, settled:0, wins:0, losses:0, pushes:0, cashouts:0, pending:0, winRate:null, roi:null };
+  bets.forEach(function(b){
+    var d = String(b.date); if (d < range.start || d > range.end) return;
+    var res = effectiveResult(b);
+    r.count++; r.wagered += b.stake; r.net += profit(b);
+    if (res === 'win') r.wins++; else if (res === 'loss') r.losses++; else if (res === 'push') r.pushes++; else if (res === 'cashout') r.cashouts++; else r.pending++;
+    if (res === 'win' || res === 'loss' || res === 'cashout') r.risked += b.stake;   /* same ROI denominator as all-time stats */
+    if (res !== 'pending') r.settled++;
+  });
+  r.net = round2(r.net); r.wagered = round2(r.wagered); r.risked = round2(r.risked);
+  if (r.wins + r.losses) r.winRate = r.wins / (r.wins + r.losses);
+  if (r.risked > 0) r.roi = r.net / r.risked;
+  return r;
+}
+/* Deposits / withdrawals: every entry is its own record ({ id, type:'deposit'|'withdrawal', amount>0, date, note }),
+   never merged per day. They don't touch bet stats; these helpers only sum them. */
+function cashFlow(txns, range){
+  var r = { deposits:0, withdrawals:0, net:0, count:0, depositCount:0, withdrawalCount:0 };
+  (txns || []).forEach(function(t){
+    var d = String(t.date), a = Number(t.amount) || 0;
+    if (range && (d < range.start || d > range.end)) return;
+    if (t.type === 'deposit'){ r.deposits += a; r.depositCount++; } else if (t.type === 'withdrawal'){ r.withdrawals += a; r.withdrawalCount++; } else return;
+    r.count++;
+  });
+  r.deposits = round2(r.deposits); r.withdrawals = round2(r.withdrawals); r.net = round2(r.deposits - r.withdrawals); return r;
+}
+/* all-time estimate: deposits - withdrawals + settled net profit - stakes still riding on open bets */
+function balanceEstimate(txns, bets){
+  var f = cashFlow(txns, null), open = 0, net = 0;
+  (bets || []).forEach(function(b){ net += profit(b); if (effectiveResult(b) === 'pending') open += b.stake; });
+  return { balance: round2(f.deposits - f.withdrawals + net - open), open: round2(open), deposits:f.deposits, withdrawals:f.withdrawals, net: round2(net) };
+}
+/* parlay legs whose own game date is `day` but whose parlay was placed on another day (shown muted, no money) */
+function legsOnDay(bets, day){
+  var out = [];
+  bets.forEach(function(b){ if (b.type !== 'parlay') return; (b.legs || []).forEach(function(l, i){ if (legDate(l, b) === day && b.date !== day) out.push({ bet:b, leg:l, index:i }); }); });
+  return out;
+}
+function moneyShort(n, signed){
+  var v = Math.round(n), a = Math.abs(v), s;
+  if (a >= 10000) s = Math.round(a / 1000) + 'k'; else if (a >= 1000) s = (a / 1000).toFixed(1).replace(/\.0$/, '') + 'k'; else s = String(a);
+  return (v < 0 ? '-' : signed && v > 0 ? '+' : '') + '$' + s;
+}
+/* 'YYYY-MM' -> array of null (leading blanks, Sunday-first) and 'YYYY-MM-DD' */
+function monthGrid(ym){
+  var y = +ym.slice(0,4), m = +ym.slice(5,7) - 1, first = new Date(y, m, 1).getDay(), n = new Date(y, m + 1, 0).getDate(), out = [];
+  for (var i = 0; i < first; i++) out.push(null);
+  for (var d = 1; d <= n; d++) out.push(ym + '-' + (d < 10 ? '0' : '') + d);
+  return out;
+}
+function shiftMonth(ym, k){ var d = new Date(+ym.slice(0,4), +ym.slice(5,7) - 1 + k, 1); return d.getFullYear() + '-' + (d.getMonth() < 9 ? '0' : '') + (d.getMonth() + 1); }
+/* ---- Slip scanner: heuristic parser for pasted / OCR'd sportsbook slips (pure; no network) ---- */
+function escRe(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+var SLIP_MONTHS = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, sept:8, oct:9, nov:10, dec:11 };
+var SLIP_WD = { sun:0, mon:1, tue:2, tues:2, wed:3, thu:4, thur:4, thurs:4, fri:5, sat:6 };
+function ymd(d){ return d.getFullYear() + '-' + (d.getMonth() < 9 ? '0' : '') + (d.getMonth() + 1) + '-' + (d.getDate() < 10 ? '0' : '') + d.getDate(); }
+function fromYmd(s){ var p = String(s).split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function nearestYear(m, d, today){
+  var t = fromYmd(today), best = null;
+  [t.getFullYear() - 1, t.getFullYear(), t.getFullYear() + 1].forEach(function(y){ var c = new Date(y, m, d); if (c.getMonth() !== m) return; if (!best || Math.abs(c - t) < Math.abs(best - t)) best = c; });
+  return best;
+}
+/* Find a date and/or time in a string. Returns {date:'YYYY-MM-DD'|null, time:'h:mm PM'|null, rest} or null */
+function slipDate(s, today){
+  var low = String(s).toLowerCase(), date = null, time = null, used = [], m;
+  if ((m = low.match(/\b(\d{1,2}):(\d{2})\s*([ap])\.?\s?m\.?(?![a-z])/))){ time = (+m[1]) + ':' + m[2] + ' ' + m[3].toUpperCase() + 'M'; used.push(m[0]); }
+  else if ((m = low.match(/\b(\d{1,2})\s?([ap])\.?m\.?(?![a-z])/))){ time = (+m[1]) + ':00 ' + m[2].toUpperCase() + 'M'; used.push(m[0]); }
+  if ((m = low.match(/\b(today|tonight|tomorrow|tmrw|yesterday)\b/))){
+    var t = fromYmd(today); t.setDate(t.getDate() + (/^tom|^tmr/.test(m[1]) ? 1 : m[1] === 'yesterday' ? -1 : 0)); date = ymd(t); used.push(m[0]);
+  } else if ((m = low.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sept?|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?![\d:])(?:st|nd|rd|th)?\b(?:,?\s*(20\d{2}))?/))){
+    var mo = SLIP_MONTHS[m[1]], dd = +m[2], dt = m[3] ? new Date(+m[3], mo, dd) : nearestYear(mo, dd, today);
+    if (dt && dd >= 1 && dd <= 31){ date = ymd(dt); used.push(m[0]); }
+  } else if ((m = low.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sept?|oct|nov|dec)[a-z]*\.?\b(?:,?\s*(20\d{2}))?/))){   /* "09 Oct" (bet365 / UK) */
+    var mo3 = SLIP_MONTHS[m[2]], d3 = +m[1], dt3 = m[3] ? new Date(+m[3], mo3, d3) : nearestYear(mo3, d3, today);
+    if (dt3 && d3 >= 1 && d3 <= 31){ date = ymd(dt3); used.push(m[0]); }
+  } else if ((m = low.match(/(?:^|[^\d$.+\-])(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?![\d.])/))){
+    var mo2 = +m[1] - 1, d2 = +m[2];
+    if (mo2 >= 0 && mo2 < 12 && d2 >= 1 && d2 <= 31){
+      var y = m[3] ? (+m[3] < 100 ? 2000 + +m[3] : +m[3]) : null, dt2 = y ? new Date(y, mo2, d2) : nearestYear(mo2, d2, today);
+      if (dt2){ date = ymd(dt2); used.push(m[0].replace(/^[^\d]/, '')); }
+    }
+  }
+  var wm = low.match(/\b(sun|mon|tue|tues|wed|thu|thur|thurs|fri|sat)(?:day|nesday|urday|sday)?\b\.?/);
+  if (wm){
+    used.push(wm[0]);
+    if (!date && (time || !low.replace(wm[0], '').replace(/[^a-z0-9]/g, ''))){ var t2 = fromYmd(today); t2.setDate(t2.getDate() + (SLIP_WD[wm[1]] - t2.getDay() + 7) % 7); date = ymd(t2); }
+  }
+  if (date && !time && (m = low.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/))){   /* 24-hour clock, only next to a date */
+    var hh = +m[1]; time = ((hh + 11) % 12 + 1) + ':' + m[2] + ' ' + (hh < 12 ? 'AM' : 'PM'); used.push(m[0]);
+  }
+  if (!date && !time) return null;
+  var rest = String(s);
+  used.forEach(function(u){ rest = rest.replace(new RegExp(escRe(u), 'i'), ' '); });
+  rest = rest.replace(/\b(et|est|edt|pt|pst|pdt|ct|cst|cdt|mt|mst|mdt|utc|gmt|bst)\b/ig, ' ').replace(/[,·•|]/g, ' ').replace(/\s+/g, ' ').trim();
+  return { date: date, time: time, rest: rest };
+}
+/* OCR + unicode clean-up */
+function slipCleanLine(s){
+  s = String(s).replace(/[\u2212\u2012\u2013\u2014\u2015\u2010\u2011\uFE63\uFF0D]/g, '-').replace(/[\u00a0\u2009\u202f\u2007]/g, ' ').replace(/[\u201c\u201d]/g, '"').replace(/[\u2018\u2019]/g, "'");
+  s = s.replace(/(^|\s)S(\d[\d,]*[.,][0-9Oo]{2})\b/g, '$1$$$2');                       /* "S25.00" -> "$25.00" */
+  s = s.replace(/(^|\s)([+\-])\s+([0-9OoIl|]{3,5})(?![A-Za-z0-9])/g, function(m, a, p, d){ return /\d/.test(d) ? a + p + d : m; });   /* "+ 300" -> "+300" */
+  s = s.replace(/([+\-$])([0-9OoIl|]{2,6})(?![A-Za-z])/g, function(m, p, d){           /* "-11O" -> "-110", "$2O.00" */
+    return /\d/.test(d) && /^[0-9OoIl|]+$/.test(d) ? p + d.replace(/[Oo]/g, '0').replace(/[Il|]/g, '1') : m;
+  });
+  s = s.replace(/(\$\d+)[,.]([0-9Oo]{2})\b/g, function(m, a, b){ return a + '.' + b.replace(/[Oo]/g, '0'); });
+  return s.replace(/[ \t]{3,}|\t/g, '\u0001').replace(/\s+/g, ' ').replace(/ ?\u0001 ?/g, '   ').trim();   /* keep column gaps */
+}
+/* split a line into columns (OCR keeps 3+ space gaps between left/right aligned text) */
+function slipCols(line){ return String(line).split(/\s{3,}/).map(function(x){ return x.trim(); }).filter(Boolean); }
+/* a person / team name: "Brandon Nakashima", "TOR Maple Leafs", "Arthur Fery" (strips bullets + trailing junk) */
+function slipName(s){
+  s = String(s).replace(/^(?:[^A-Za-z0-9\s]{1,3}\)?|[oO0]\)?)\s+(?=[A-Z])/, '').replace(/^[^A-Za-z0-9]+/, '').replace(/(\s+(\d{1,2}|[^A-Za-z0-9\s]+))+$/, '').trim();
+  return /^[A-Z][A-Za-z.'\-]*(\s+[A-Z][A-Za-z.'\-]*){1,3}$/.test(s) && !/\d/.test(s) ? s : null;
+}
+/* live scoreboard header inside a slip ("P3 05:38 1 2 3 T", "2nd 10:21", "Top 7th", "HT", "Final") */
+var SLIP_SCORE_HDR = /^(?:[PQH][1-4]|OT|SO|HT|FT|1st|2nd|3rd|4th|\d+th|Top|Bot|Mid|End|Half(?:time)?|Final|Live|In Play)\b(?:\s+\d{1,2}:\d{2})?(?:\s+(?:\d{1,2}|[A-Za-z]{1,2})){0,8}\s*$/i;
+function slipScoreLine(line){ return (line.match(/(^|\s)\d{1,2}(?=\s|$)/g) || []).length >= 3; }
+/* OCR typo repair for lone market words ("Maoneyline" -> "Moneyline") */
+var SLIP_WORDS = ['Moneyline','Points','Rebounds','Assists','Spread','Total','Strikeouts','Receptions','Handicap','Winner','Threes','Goals','Saves','Hits','Placed','Wager','Stake','Payout'];
+function slipLev(a, b){
+  var m = a.length, n = b.length, d = [], i, j;
+  for (i = 0; i <= m; i++) d[i] = [i];
+  for (j = 1; j <= n; j++) d[0][j] = j;
+  for (i = 1; i <= m; i++) for (j = 1; j <= n; j++) d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return d[m][n];
+}
+function slipFixWord(line){
+  if (!/^[A-Za-z]{5,12}$/.test(line)) return line;
+  var lw = line.toLowerCase();
+  for (var i = 0; i < SLIP_WORDS.length; i++){
+    var w = SLIP_WORDS[i], dist = slipLev(lw, w.toLowerCase());
+    if (dist === 0) return line;
+    if (dist <= (w.length >= 8 ? 2 : 1) && w.length >= 6) return w;
+  }
+  return line;
+}
+var SLIP_ODDS_RE = /(^|[\s(\[:])([+\-]\d{3,5}|even|evens)(?=$|[\s)\],])/ig;
+function findAmerican(s){
+  var m, last = null; SLIP_ODDS_RE.lastIndex = 0;
+  while ((m = SLIP_ODDS_RE.exec(s))){
+    var raw = m[2], v = /^even/i.test(raw) ? 100 : Number(raw);
+    if (Math.abs(v) >= 100) last = { raw: raw, american: v, decimal: americanToDecimal(v), index: m.index + m[1].length };
+  }
+  return last;
+}
+function findDecimalOdds(s){
+  /* decimal price at the end of a column: "Brandon Nakashima 1.57", "VGS Golden Knights 1.74   (icon)" */
+  var cols = slipCols(s), m = null, pre = '';
+  for (var i = 0; i < cols.length; i++){
+    pre = cols.slice(0, i + 1).join('   ');
+    m = pre.match(/(^|[\s(@])(\d{1,3}\.\d{2})\s*\)?$/);
+    if (m){ if (/[A-Za-z]{3}/.test(cols.slice(i + 1).join(' '))) m = null; break; }   /* words after it: a stat, not a price */
+  }
+  if (!m) return null;
+  var before = pre.slice(0, m.index + m[1].length);
+  if (/\$\s?$/.test(before) || /\b(over|under|o|u)\s*$/i.test(before)) return null;
+  var d = Number(m[2]); return d >= 1.01 && d <= 1000 ? { raw: m[2], american: decimalToAmerican(d), decimal: d, index: m.index + m[1].length } : null;
+}
+var SLIP_MONEY_LABEL = /(total wager|total stake|total bet|wager(?:ed)?|stake|bet amount|risk(?:ing)?|to win|potential win(?:nings)?|win amount|winnings|total payout|potential payout|est\.? payout|payout|to pay|to return|potential return|returns?)\s*:?\s*(\$\s?[\d,]+(?:\.\d{1,2})?|[\d,]+\.\d{2})?/ig;
+function moneyKind(label){ label = label.toLowerCase(); return /win|profit/.test(label) ? 'toWin' : /pay|return/.test(label) ? 'payout' : 'stake'; }
+function moneyVal(s){ return Number(String(s).replace(/[$,\s]/g, '')); }
+var SLIP_HEADER = /\b(\d+)\s*-?\s*(?:leg|pick|team|selection)s?\b|\bparlay\b|\bsgp\+?\b|same\s*game|\baccumulator\b|\bacca\b|\btotal odds\b|\bparlay odds\b|\bcombined odds\b/i;
+var SLIP_NOISE = /^(draftkings|draft kings|fanduel|fan duel|betmgm|bet mgm|caesars( sportsbook)?|bet365|espn ?bet|fanatics( sportsbook)?|hard ?rock( bet)?|betrivers|prizepicks|underdog( fantasy)?|bovada|sportsbook|bet ?slip|my bets|open bets?|settled( bets)?|receipt|bet (placed|confirmed|accepted|details)|straight( bet| wager)?|single( bet)?|share( bet| slip)?|cash ?out.*|keep picks.*|reuse.*|done|view (all|details|bet)|see (all|more)|(profit|odds|parlay|sgp) boost.*|boosted|bet id.*|(ticket|ref|reference)( no\.?| number| #)?:?.*|id:?\s*\S*|#\s*\S+|open|live|won|lost|pending|void|odds|selections?|picks?|legs?|place bet.*|accept odds.*|odds changed.*|log ?in|deposit|edit|remove|clear|x|close|back|ok|copy|more|details|bet|bets|\W*)$/i;
+var SLIP_MARKET = /^(moneyline|money line|ml|spread( betting)?|point spread|alt(ernate)? spread|run ?line|puck ?line|handicap|asian handicap|total( points| runs| goals| games| match goals)?|game total|alt(ernate)? total|over ?\/ ?under|match (result|winner|betting)|to win( match| game)?|result|1x2|full ?time result|winner|double chance|both teams to score|btts|draw no bet|player (points|rebounds|assists|threes|passing|rushing|receiving|receptions|hits|strikeouts|shots|saves|props?|pts|reb|ast)[a-z +]*|points|rebounds|assists|threes|3-?pointers?( made)?|pts ?\+ ?reb ?\+ ?ast|pra|passing (yards|yds|tds|touchdowns)|rushing (yards|yds)|receiving (yards|yds)|receptions|any ?time (touchdown|td)( scorer)?|anytime goal ?scorer|(first|1st) (touchdown|td|goal)( scorer)?|to score( a)?( touchdown| goal)?|strikeouts|pitcher strikeouts|hits|total bases|home runs?|to hit a home run|rbis?|shots on goal|goals|saves|set betting|set \d winner|total sets|total games|method of victory|round betting|fight (outcome|result)|to win tournament|top \d+ finish|tournament winner|outright( winner)?|futures?)\b.*$/i;
+var SLIP_MATCH = /^(.{2,}?)\s+(?:@|vs\.?|v\.?|versus)\s+(.{2,})$/i;
+var SLIP_PLACED = /\b(placed|date placed|placed on|bet date|accepted)\b/i;
+var SLIP_SPORT_WORDS = {
+  NFL: { w:3, k:'cardinals falcons ravens bills panthers bears bengals browns cowboys broncos lions packers texans colts jaguars chiefs raiders chargers rams dolphins vikings patriots saints giants jets eagles steelers 49ers niners seahawks buccaneers bucs titans commanders nfl' },
+  NFLp:{ s:'NFL', w:1, k:'passing yards|passing yds|rushing yards|rushing yds|receiving yards|receiving yds|touchdown|td scorer|receptions|passing tds|interceptions|sacks|field goal|first td|anytime td' },
+  NBA: { w:3, k:'hawks celtics nets hornets bulls cavaliers cavs mavericks mavs nuggets pistons warriors rockets pacers clippers lakers grizzlies heat bucks timberwolves pelicans knicks thunder magic 76ers sixers suns blazers kings spurs raptors jazz wizards nba lebron curry jokic doncic giannis tatum embiid wembanyama' },
+  NBAp:{ s:'NBA', w:1, k:'points|rebounds|assists|3-pointers|threes|pts|reb|ast|double double|triple double|pra' },
+  WNBA:{ w:3, k:'aces liberty lynx fever mercury sparks mystics valkyries wnba' },
+  MLB: { w:3, k:'diamondbacks dbacks braves orioles red sox cubs white sox reds guardians rockies tigers astros royals angels dodgers marlins brewers twins mets yankees athletics phillies pirates padres mariners rays blue jays nationals mlb ohtani judge' },
+  MLBp:{ s:'MLB', w:1, k:'strikeouts|total bases|home run|rbi|rbis|run line|hits allowed|innings|1st 5' },
+  NHL: { w:3, k:'ducks bruins sabres flames hurricanes blackhawks avalanche blue jackets red wings oilers wild canadiens predators devils islanders senators flyers penguins sharks kraken blues lightning maple leafs canucks golden knights capitals mammoth nhl mcdavid' },
+  NHLp:{ s:'NHL', w:1, k:'shots on goal|puck line|power play|saves|goalie' },
+  Soccer:{ w:3, k:'arsenal chelsea liverpool everton tottenham spurs man city man utd manchester newcastle aston villa brighton brentford fulham wolves west ham crystal palace bournemouth nottingham forest leeds burnley sunderland real madrid barcelona atletico bayern dortmund psg paris saint-germain juventus inter milan napoli roma inter miami lafc galaxy sounders atlanta united premier league la liga serie a bundesliga ligue 1 champions league mls fc' },
+  Soccerp:{ s:'Soccer', w:2, k:'draw|both teams to score|btts|1x2|double chance|clean sheet|goalscorer|draw no bet|match result|full time result' },
+  Tennis:{ w:3, k:'sinner alcaraz djokovic medvedev zverev fritz rune ruud tsitsipas de minaur shelton paul tiafoe draper swiatek sabalenka gauff rybakina pegula zheng paolini keys navarro andreeva atp wta' },
+  Tennisp:{ s:'Tennis', w:2, k:'set betting|total sets|total games|set 1|games handicap|match winner|tie break' },
+  UFC: { w:3, k:'ufc mma' }, UFCp:{ s:'UFC', w:2, k:'method of victory|by ko|by tko|by submission|by decision|round betting|fight outcome|go the distance' },
+  Golf:{ w:3, k:'pga liv masters scheffler mcilroy' }, Golfp:{ s:'Golf', w:2, k:'top 5|top 10|top 20|tournament winner|make the cut|make cut|first round leader' },
+  NCAAF:{ w:3, k:'ncaaf college football' }, NCAAB:{ w:3, k:'ncaab college basketball march madness' }
+};
+var SLIP_SPORT_ORDER = ['NFL','NBA','MLB','NHL','Soccer','Tennis','WNBA','NCAAF','NCAAB','UFC','Golf'];
+/* UI chrome: whole line, or every column / " - " part, is noise (icons OCR'd as "7", "(M", "©" are ignored) */
+function slipNoise(line){
+  if (SLIP_NOISE.test(line)) return true;
+  return line.split(/\s{3,}|\s+[-\u00b7|\u2022]\s+/).every(function(x){
+    x = x.trim().replace(/^(?:[^A-Za-z\s]{1,2}|\(?[A-Za-z]\)?|\(?[A-Z][a-z]?)\s+(?=[A-Za-z])/, '');
+    return SLIP_NOISE.test(x) || /^(reuse selections?|share|cash out|edit bet|rebet)$/i.test(x);
+  });
+}
+function slipSport(text){
+  var t = ' ' + String(text).toLowerCase().replace(/[^a-z0-9+ \-]/g, ' ').replace(/\s+/g, ' ') + ' ', score = {};
+  Object.keys(SLIP_SPORT_WORDS).forEach(function(k){
+    var e = SLIP_SPORT_WORDS[k], sport = e.s || k, words = e.k.indexOf('|') >= 0 ? e.k.split('|') : e.k.split(' ');
+    if (e.k.indexOf('|') < 0) words = e.k.match(/(red sox|white sox|blue jays|blue jackets|red wings|maple leafs|golden knights|man city|man utd|west ham|crystal palace|aston villa|nottingham forest|real madrid|inter miami|atlanta united|premier league|la liga|serie a|ligue 1|champions league|de minaur|college football|college basketball|march madness|[^ ]+)/g);
+    words.forEach(function(w){ if (w && t.indexOf(' ' + w + ' ') >= 0) score[sport] = (score[sport] || 0) + e.w; });
+  });
+  var c = SLIP_SPORT_ORDER.filter(function(s){ return score[s]; }).sort(function(a, b){ return score[b] - score[a]; });
+  return { sport: c[0] || '', candidates: c };
+}
+function parseSlip(text, opts){
+  opts = opts || {}; var today = opts.today || ymd(new Date());
+  var lines = String(text || '').split(/\r?\n/).map(slipCleanLine).map(slipFixWord).filter(Boolean);
+  var out = { legs:[], stake:null, toWin:null, payout:null, totalOdds:null, placed:null, isParlay:false, sgp:false, unparsed:[], lines: lines };
+  var hasAmerican = lines.some(function(l){ return findAmerican(l); });
+  var decimalMode = !hasAmerican && (opts.style === 'decimal' || lines.filter(function(l){ return findDecimalOdds(l); }).length >= 1);
+  var odds = function(l){ return hasAmerican ? findAmerican(l) : decimalMode ? findDecimalOdds(l) : null; };
+  var cur = null, pend = {}, queue = [], sb = null, seen = false;
+  function ctx(kind, val, sd){
+    seen = true;
+    var target = cur && cur[kind] == null ? cur : null;
+    if (kind === 'date' && cur && !target && cur.time == null && sd.time && (!sd.date || sd.date === cur.date)) target = cur;   /* "Fri Oct 9" then "1:30 AM" */
+    if (kind === 'date'){ if (target){ cur.date = sd.date || cur.date; cur.time = sd.time || cur.time; } else { pend.date = sd.date; pend.time = sd.time; } return; }
+    if (target) cur[kind] = val; else pend[kind] = val;
+  }
+  function newLeg(desc, o, line){
+    if (cur && cur.odds == null && !cur.market && !cur.matchup && !cur.date && o){ desc = cur.desc + ' ' + desc; out.legs.pop(); }   /* OCR split line */
+    cur = { desc: desc, odds: o ? o.decimal : null, oddsText: o ? o.raw : null, market: pend.market || null, matchup: pend.matchup || null, date: pend.date || null, time: pend.time || null, src: [line] };
+    pend = {}; out.legs.push(cur); seen = true;
+  }
+  lines.forEach(function(line){
+    var sd, o, m;
+    /* live scoreboard box (period/clock header, then team rows with score digits): use team names as the matchup, never as legs/odds */
+    if (SLIP_SCORE_HDR.test(line) || (!hasAmerican && !sb && slipScoreLine(line) && !/[$]/.test(line) && !odds(line))){
+      sb = { teams: [], leg: cur }; return;
+    }
+    if (sb){
+      var tn = null; slipCols(line).some(function(c){ return (tn = slipName(c)); });
+      if (tn && !odds(line) && !SLIP_MONEY_LABEL.test(line) && sb.teams.length < 2){ SLIP_MONEY_LABEL.lastIndex = 0; sb.teams.push(tn); if (sb.teams.length === 2){ if (sb.leg && !sb.leg.matchup) sb.leg.matchup = sb.teams[0] + ' @ ' + sb.teams[1]; sb = null; } return; }
+      SLIP_MONEY_LABEL.lastIndex = 0;
+      if (/^(?:\d{1,2}|[A-Z]{1,2})(?:\s+(?:\d{1,2}|[A-Z]{1,2}))*$/.test(line) && !odds(line)) return;   /* period / score rows */
+      sb = null;
+    }
+    sd = slipDate(line, today);
+    if (sd && sd.date && SLIP_PLACED.test(line)){ out.placed = sd.date; return; }
+    /* bonus / free bet wording: stake is a credit, payout excludes it */
+    if (/\b(bonus bets?|free bets?|bet credits?|site credit|bet token|freeplay|free play)\b/i.test(line) && !odds(line)){
+      out.bonusBet = true; var ba = line.match(/\$\s?[\d,]+(\.\d{1,2})?/); if (ba && out.stake == null) out.stake = moneyVal(ba[0]); return;
+    }
+    /* first line of the slip is often the placed date/time header ("Fri 09 Oct 00:30") */
+    if (sd && sd.date && !seen && !cur && !odds(line) && sd.date <= today && sd.rest.replace(/[^a-z]/gi, '').length <= 12){ out.placedGuess = sd.date; seen = true; return; }
+    /* money labels (stake / to win / payout), possibly several per line, possibly amounts on the next line */
+    SLIP_MONEY_LABEL.lastIndex = 0; var found = [], mm;
+    while ((mm = SLIP_MONEY_LABEL.exec(line))) found.push(mm);
+    if (found.length){
+      var leftover = line; found.forEach(function(f){ leftover = leftover.replace(f[0], ' '); });
+      if (leftover.replace(/[^a-z0-9]/gi, '').length <= 3){
+        found.forEach(function(f){ var k = moneyKind(f[1]); if (f[2]) out[k] = moneyVal(f[2]); else queue.push(k); });
+        return;
+      }
+    }
+    if (/^(\$\s?[\d,]+(\.\d{1,2})?\s*)+$/.test(line)){
+      var amts = line.match(/\$\s?[\d,]+(\.\d{1,2})?/g);
+      if (queue.length){ amts.forEach(function(a){ var k = queue.shift(); if (k) out[k] = moneyVal(a); }); return; }
+      out.unparsed.push(line); return;
+    }
+    o = odds(line);
+    if (SLIP_HEADER.test(line) && !(o && /\b(over|under|ml|moneyline)\b/i.test(line))){
+      out.isParlay = true; seen = true; if (/same\s*game|\bsgp/i.test(line)) out.sgp = true;
+      if (o) out.totalOdds = o.decimal;
+      return;
+    }
+    if (slipNoise(line)) return;
+    if (sd && !o && sd.rest.replace(/[^a-z0-9]/gi, '').length <= 2){ ctx('date', null, sd); return; }
+    var text = o ? (line.slice(0, o.index) + ' ' + line.slice(o.index + o.raw.length)).replace(/[()\[\]]/g, ' ').replace(/\s+/g, ' ').trim() : line;
+    if (!o){
+      var mt = (sd && sd.rest.length > 4 ? sd.rest : line).match(SLIP_MATCH);
+      if (mt && !SLIP_MARKET.test(line)){ ctx('matchup', mt[1].trim() + (/\s@\s/.test(line) ? ' @ ' : ' vs ') + mt[2].trim()); if (sd) ctx('date', null, sd); return; }
+    }
+    if (SLIP_MARKET.test(text) && (!o || (cur && cur.odds == null))){
+      ctx('market', text); if (o && cur && cur.odds == null){ cur.odds = o.decimal; cur.oddsText = o.raw; } return;
+    }
+    if (o && !text.replace(/[^a-z0-9]/gi, '')){
+      if (cur && cur.odds == null){ cur.odds = o.decimal; cur.oddsText = o.raw; cur.src.push(line); }
+      else if (cur && cur.parts && cur.parts.length){ newLeg(cur.parts.pop(), o, line); }   /* "Name" then "+odds" on its own line */
+      else out.unparsed.push(line);
+      return;
+    }
+    /* participant rows under a priced selection ("Matteo Berrettini   Fri Oct 9" / "Brandon Nakashima   1:30 AM") */
+    if (!o && cur && cur.odds != null && !cur.matchup && (cur.parts || []).length < 2){
+      var nm = slipName(sd ? sd.rest : slipCols(line)[0] || '');
+      if (nm && !SLIP_MARKET.test(nm) && !SLIP_NOISE.test(nm)){
+        (cur.parts = cur.parts || []).push(nm); cur.src.push(line);
+        if (sd){ if (sd.date) cur.date = cur.date || sd.date; if (sd.time) cur.time = cur.time || sd.time; }
+        return;
+      }
+    }
+    if (o){ newLeg(text, o, line); return; }
+    if (cur && cur.odds == null && cur.desc && !cur.market && line.length >= 4 && line === line.toUpperCase() && /[A-Z]{3}/.test(line)){ cur.market = line; return; }
+    if (cur && cur.odds == null && !cur.market && !cur.matchup && !cur.date){ cur.desc += ' ' + line; cur.src.push(line); return; }
+    newLeg(line, null, line);
+  });
+  out.legs.forEach(function(l){
+    if (l.parts && l.parts.length === 2 && !l.matchup) l.matchup = l.parts[0] + ' vs ' + l.parts[1];
+    else if (l.parts && l.parts.length === 1) out.unparsed.push(l.parts[0]);
+    delete l.parts;
+  });
+  var legs = out.legs, withOdds = legs.filter(function(l){ return l.odds != null; }).length;
+  /* drop text-only fragments when real legs exist */
+  out.legs = legs = legs.filter(function(l){
+    if (l.odds == null && withOdds && !l.market && !l.matchup && !l.date){ out.unparsed = out.unparsed.concat(l.src); return false; }
+    return true;
+  });
+  /* shared context: trailing matchup/date (same-game parlays), single distinct date */
+  if (pend.matchup) legs.forEach(function(l){ if (!l.matchup) l.matchup = pend.matchup; });
+  if (pend.date) legs.forEach(function(l){ if (!l.date){ l.date = pend.date; l.time = l.time || pend.time; } });
+  var mus = legs.map(function(l){ return l.matchup; }).filter(Boolean), dts = legs.map(function(l){ return l.date; }).filter(Boolean);
+  if (out.sgp && mus.length && mus.every(function(x){ return x === mus[0]; })) legs.forEach(function(l){ if (!l.matchup) l.matchup = mus[0]; });
+  if (dts.length && dts.every(function(x){ return x === dts[0]; })) legs.forEach(function(l){ if (!l.date){ l.date = dts[0]; } });
+  legs.forEach(function(l){
+    l.desc = l.desc.replace(/^(?:[^A-Za-z0-9\s]{1,3}\)?|[oO0]\)?)\s+(?=[A-Z])/, '').replace(/(\s+[^A-Za-z0-9\s.+\-]{1,3}\)?)+$/, '').replace(/^[^A-Za-z0-9+\-]+/, '').replace(/[\s|·•:,\-]+$/, '').replace(/\s+/g, ' ').trim();
+    var mk = (l.market || '').toLowerCase(), dl = l.desc.toLowerCase();
+    if (/^(moneyline|money line|ml|to win( match| game)?|match winner|winner)$/.test(mk) && !/\b(ml|moneyline)\b/.test(dl) && !/\b(over|under|draw)\b/.test(dl)) l.desc += ' ML';
+    var sp = (l.market || '').match(/[+\-]\d+(\.5)?\b/);
+    if (sp && !/[+\-]\d+(\.5)?\b/.test(l.desc)) l.desc += ' ' + sp[0];
+    if (/\b(over|under)\b/.test(dl) && mk && !/^(total|game total|alt|over|spread|moneyline|ml|point spread)/.test(mk)){
+      var words = mk.replace(/^player\s+/, '').split(/\s+/).filter(function(w){ return w.length > 2; });
+      if (words.length && !words.some(function(w){ return dl.indexOf(w) >= 0 || dl.indexOf(w.slice(0, 3)) >= 0; }))
+        l.desc += ' ' + mk.replace(/^player\s+/, '').replace(/\b[a-z]/g, function(c){ return c.toUpperCase(); });
+    }
+    var sp2 = slipSport([l.desc, l.market, l.matchup].join(' '));
+    /* "First Last vs First Last" with no team words: an individual sport, most often tennis */
+    if (!sp2.sport && /^[A-Z][a-z.'\-]+( [A-Z][A-Za-z.'\-]+){1,2} vs [A-Z][a-z.'\-]+( [A-Z][A-Za-z.'\-]+){1,2}$/.test(l.matchup || '')) sp2 = { sport: 'Tennis', candidates: ['Tennis', 'UFC'], guessed: true };
+    l.sport = sp2.sport; l.sportCandidates = sp2.candidates;
+    var c = 0.35 + (l.odds != null ? 0.35 : 0) + (l.date ? 0.1 : 0) + (l.market || l.matchup ? 0.1 : 0) + (l.sport ? 0.1 : 0);
+    if (l.desc.length < 4 || /[^\w\s+\-.@'&\/()]/.test(l.desc)) c -= 0.2;
+    l.confidence = Math.max(0.1, Math.min(1, Math.round(c * 100) / 100));
+    delete l.src;
+  });
+  /* cashed-out slips: "Cashed Out $80.00", "Cash Out: $80", "Cashout 80.00" */
+  var coLine = lines.filter(function(l){ return /\bcash(?:ed)?[\s-]?out\b/i.test(l) && !/\b(available|offer|now|keep picks)\b/i.test(l); })[0];
+  if (coLine){
+    var coIdx = lines.indexOf(coLine), coNext = lines[coIdx + 1] || '';
+    if (!/\$|\d\.\d{2}/.test(coLine) && /^\$\s?[\d,]+(\.\d{1,2})?$/.test(coNext)) coLine = coLine + ' ' + coNext;
+    var coAmt = coLine.match(/\$\s?([\d,]+(?:\.\d{1,2})?)|\b(\d[\d,]*\.\d{2})\b/);
+    out.cashout = true; out.cashoutAmount = coAmt ? moneyVal(coAmt[1] || coAmt[2]) : null;
+    out.unparsed = out.unparsed.filter(function(u){ return u !== coLine; });
+  }
+  if (!out.placed && out.placedGuess) out.placed = out.placedGuess;
+  delete out.placedGuess;
+  if (out.bonusBet && out.payout != null && out.toWin == null) out.toWin = out.payout;   /* bonus bet: "Net Return" is all profit, stake not returned */
+  if (out.payout != null && out.stake != null && out.toWin == null) out.toWin = round2(out.payout - out.stake);
+  if (out.toWin != null && out.stake != null && out.payout == null) out.payout = round2(out.toWin + out.stake);
+  if (out.totalOdds == null && legs.length === 1) out.totalOdds = legs[0].odds;
+  if (legs.length > 1) out.isParlay = true;
+  if (out.totalOdds && legs.length > 1 && legs.every(function(l){ return l.odds; })){
+    var comb = legs.reduce(function(p, l){ return p * l.odds; }, 1);
+    out.legsOdds = comb; out.oddsMismatch = Math.abs(comb - out.totalOdds) / out.totalOdds > 0.015;
+  }
+  if (out.totalOdds == null && out.stake && out.toWin) out.impliedOdds = 1 + out.toWin / out.stake;
+  if (out.totalOdds == null && out.impliedOdds && legs.length > 1 && legs.every(function(l){ return l.odds; })){
+    out.legsOdds = legs.reduce(function(p, l){ return p * l.odds; }, 1);
+    out.oddsMismatch = Math.abs(out.legsOdds - out.impliedOdds) / out.impliedOdds > 0.005;
+  }
+  return out;
+}
+/* Match a parsed leg to an ESPN game list by team names */
+var SLIP_GENERIC = { fc:1, city:1, united:1, sc:1, cf:1, club:1, state:1, team:1, the:1, real:1, inter:1 };
+function teamKeys(t){
+  var k = [t.name, t.short], parts = String(t.name).split(' ');
+  if (parts.length > 1) k.push(parts[parts.length - 1]);
+  return k.filter(function(x, i, a){ return x && x.length >= 3 && !SLIP_GENERIC[x.toLowerCase()] && a.indexOf(x) === i; }).map(function(x){ return x.toLowerCase(); });
+}
+function textHas(text, key){ return new RegExp('(^|[^a-z0-9])' + escRe(key) + '($|[^a-z0-9])').test(text); }
+function matchSlipGame(games, leg){
+  var all = (leg.desc + ' ' + (leg.matchup || '')).toLowerCase(), d = leg.desc.toLowerCase(), best = null, bs = 0, tie = false;
+  var mp = (leg.matchup || '').toLowerCase().split(/\s+(?:@|vs\.?|v\.?|versus)\s+/);
+  function has(t, team){ return teamKeys(team).some(function(k){ return textHas(t, k); }); }
+  games.forEach(function(g){
+    var s;
+    if (mp.length === 2) s = (has(mp[0], g.away) && has(mp[1], g.home)) || (has(mp[0], g.home) && has(mp[1], g.away)) ? 2 : 0;  /* both sides of the slip's matchup must agree */
+    else s = (has(all, g.home) ? 1 : 0) + (has(all, g.away) ? 1 : 0);
+    if (s > bs){ best = g; bs = s; tie = false; } else if (s && s === bs) tie = true;
+  });
+  if (!best || tie) return null;
+  var inH = teamKeys(best.home).some(function(k){ return textHas(d, k); }), inA = teamKeys(best.away).some(function(k){ return textHas(d, k); });
+  var side = /\bdraw\b/.test(d) ? 'draw' : inH && !inA ? 'home' : inA && !inH ? 'away' : null;
+  return { game: best, side: side, score: bs };
+}
+function isMoneylineLeg(l){ return /\b(ml|moneyline|money line|to win|match winner|match result|1x2)\b/i.test(l.desc + ' ' + (l.market || '')) || /^draw$/i.test(l.desc); }
+if (typeof module !== 'undefined') module.exports = { periodShift, periodName, round2, americanToDecimal, decimalToAmerican, parseOdds, parseStake, formatOdds, profit, stats, money, groupByDay, combinedOdds, parlayAutoResult, parlayWinDecimal, effectiveResult, GAME_FEEDS, espnUrl, parseScoreboard, matchupText, parseAmericanML, scoreboardOdds, coreOdds, coreOddsUrl, legDate, dayTotals, monthTotals, legsOnDay, recordText, periodRange, periodTotals, cashFlow, balanceEstimate, moneyShort, monthGrid, shiftMonth, parseSlip, slipDate, slipCleanLine, slipFixWord, slipSport, matchSlipGame, isMoneylineLeg };
+</script>
+
+<script id="store">
+/* Data layer. The UI only calls Store.*; bets are cached synchronously so the UI never waits on the network.
+   Local mode: bets in localStorage, slip screenshots in IndexedDB (unchanged behaviour).
+   Cloud mode (Supabase): same local cache per user + a persisted queue of changes that is pushed to the
+   `bets` / `user_settings` tables and the private `slips` Storage bucket; failed pushes stay queued and retry. */
+function makeStore(env){
+  var ls = env.localStorage, images = env.images, F = env.fetch;
+  var K = { bets:'nightline.bets', txns:'nightline.txns', mode:'nightline.mode', user:'nightline.cloudUser' };
+  var mode = 'local', user = null, client = null, cache = null, queue = [], lastJson = {}, settings = {}, mem = {};
+  /* deposits / withdrawals: one record per entry (never merged); own cache + own queue, so a missing
+     `transactions` table (migration not run yet) never blocks bet sync */
+  var tcache = null, tqueue = [], tlast = {}, tstate = 'ok', tflushing = null;
+  var flushing = null, status = { state:'idle', error:null }, listeners = { change:[], status:[] };
+  function jget(k, def){ try { var v = JSON.parse(ls.getItem(k)); return v == null ? def : v; } catch(e){ return def; } }
+  function jset(k, v){ ls.setItem(k, JSON.stringify(v)); }
+  function ck(s){ return 'nightline.cloud.' + user.id + '.' + s; }
+  function betsKey(){ return mode === 'cloud' ? ck('bets') : K.bets; }
+  function load(){
+    if (cache) return cache;
+    cache = jget(betsKey(), []); if (!Array.isArray(cache)) cache = [];
+    lastJson = {}; cache.forEach(function(b){ lastJson[b.id] = JSON.stringify(b); });
+    return cache;
+  }
+  function write(){ jset(betsKey(), cache); }
+  function txKey(){ return mode === 'cloud' ? ck('txns') : K.txns; }
+  function tload(){
+    if (tcache) return tcache;
+    tcache = jget(txKey(), []); if (!Array.isArray(tcache)) tcache = [];
+    tlast = {}; tcache.forEach(function(t){ tlast[t.id] = JSON.stringify(t); });
+    return tcache;
+  }
+  function twrite(){ jset(txKey(), tcache); }
+  function tsaveQueue(){ if (mode === 'cloud') jset(ck('txq'), tqueue); }
+  function tenqueue(op){
+    tqueue = tqueue.filter(function(o){ return o.id !== op.id; });   /* latest op per id wins */
+    tqueue.push(op); tsaveQueue();
+  }
+  function txMissing(e){ var m = String(e && (e.message || e) || ''); return !!e && (e.code === 'PGRST205' || e.code === '42P01' || e.code === 'PGRST204' || /transactions/i.test(m) && /schema cache|does not exist|not find/i.test(m)); }
+  function txRow(t){ return { user_id:user.id, id:t.id, type:t.type, amount:t.amount, date:t.date || null, note:t.note || null, data:t }; }
+  function trun(op){
+    var t = client.from('transactions');
+    if (op.t === 'tup'){
+      var x = tcache.find(function(y){ return y.id === op.id; }); if (!x) return Promise.resolve();
+      return Promise.resolve(t.upsert(txRow(x), { onConflict:'user_id,id' })).then(chk);
+    }
+    return Promise.resolve(t.delete().eq('id', op.id)).then(chk);
+  }
+  function tsetState(st){ if (tstate !== st){ tstate = st; emit('status', api.status()); } }
+  function tflush(){
+    if (mode !== 'cloud' || !client || !tqueue.length) return Promise.resolve(true);
+    if (tflushing) return tflushing;
+    tflushing = (function step(){
+      if (!tqueue.length){ tflushing = null; tsetState('ok'); return Promise.resolve(true); }
+      var op = tqueue[0];
+      return trun(op).then(function(){ tqueue = tqueue.filter(function(o){ return o !== op; }); tsaveQueue(); return step(); });
+    })().catch(function(e){ tflushing = null; tsetState(txMissing(e) ? 'missing' : 'error'); return false; });
+    return tflushing;
+  }
+  function tpull(){
+    return Promise.resolve(client.from('transactions').select('id,data')).then(chk).then(function(r){
+      var pend = {}; tqueue.forEach(function(o){ pend[o.id] = o.t; });
+      var server = (r.data || []).map(function(x){ return Object.assign({}, x.data, { id:x.id }); }).filter(function(x){ return !pend[x.id]; });
+      tcache = server.concat(tcache.filter(function(x){ return pend[x.id] === 'tup'; }));
+      tlast = {}; tcache.forEach(function(x){ tlast[x.id] = JSON.stringify(x); }); twrite();
+      tsetState('ok');
+    }, function(e){ tsetState(txMissing(e) ? 'missing' : 'error'); });   /* keep the local copy */
+  }
+  function emit(type, arg){ listeners[type].forEach(function(f){ try { f(arg); } catch(e){} }); }
+  function setStatus(state, err){ status = { state:state, error:err ? String(err.message || err) : null, pending:queue.length }; emit('status', status); }
+  function saveQueue(){ if (mode === 'cloud') jset(ck('queue'), queue); }
+  function enqueue(op){
+    if (op.t === 'up' && queue.some(function(o){ return o.t === 'up' && o.id === op.id; })) return;
+    if (op.t === 'set') queue = queue.filter(function(o){ return o.t !== 'set'; });
+    if (op.t === 'del') queue = queue.filter(function(o){ return !(o.id === op.id && (o.t === 'up' || o.t === 'img')); });
+    queue.push(op); saveQueue();
+  }
+  function chk(r){ if (r && r.error) throw r.error; return r; }
+  function sideOf(b){ var r = typeof effectiveResult === 'function' ? effectiveResult(b) : b.result; return r; }
+  function rowOf(b){
+    var r = sideOf(b), p = r === 'pending' ? null : (typeof profit === 'function' ? profit(b) : null);
+    return { user_id:user.id, id:b.id, data:b, placed_date:b.date || null, result:r, stake:b.stake, net_profit:p, slip_image_path:b.slipImagePath || null };
+  }
+  function extOf(type){ return type === 'image/webp' ? 'webp' : type === 'image/png' ? 'png' : 'jpg'; }
+  function imgGet(key){ return mem[key] ? Promise.resolve(mem[key]) : images.get(key).then(function(b){ return b || null; }, function(){ return null; }); }
+  function run(op){
+    var t = client.from('bets');
+    if (op.t === 'up'){
+      var b = cache.find(function(x){ return x.id === op.id; }); if (!b) return Promise.resolve();
+      var row = rowOf(b);
+      return Promise.resolve(t.upsert(row, { onConflict:'user_id,id' })).then(function(r){
+        /* projects set up before 'cashout' existed have CHECK (result in pending/win/loss/push): keep the save working, result stays in data */
+        if (r && r.error && r.error.code === '23514' && row.result === 'cashout'){ row.result = null; return Promise.resolve(client.from('bets').upsert(row, { onConflict:'user_id,id' })); }
+        return r;
+      }).then(chk);
+    }
+    if (op.t === 'del'){
+      return Promise.resolve(t.delete().eq('id', op.id)).then(chk).then(function(){
+        if (op.path) return Promise.resolve(client.storage.from('slips').remove([op.path])).then(function(){}, function(){});
+      });
+    }
+    if (op.t === 'img'){
+      var bet = cache.find(function(x){ return x.slipImageId === op.key; }); if (!bet) return Promise.resolve();
+      return imgGet(op.key).then(function(blob){
+        if (!blob) return;   /* nothing to upload (image never stored on this device) */
+        var path = user.id + '/' + bet.id + '.' + extOf(blob.type);
+        return Promise.resolve(client.storage.from('slips').upload(path, blob, { upsert:true, contentType:blob.type || 'image/jpeg' })).then(chk).then(function(){
+          delete mem[op.key]; bet.slipImagePath = path; lastJson[bet.id] = JSON.stringify(bet); write(); enqueue({ t:'up', id:bet.id });
+        });
+      });
+    }
+    if (op.t === 'set') return Promise.resolve(client.from('user_settings').upsert({ user_id:user.id, odds_style:settings.oddsStyle || 'american' }, { onConflict:'user_id' })).then(chk);
+    return Promise.resolve();
+  }
+  function flush(){
+    if (mode !== 'cloud' || !client) return Promise.resolve(false);
+    if (flushing) return flushing;
+    tflush();
+    if (!queue.length){ setStatus('synced'); return Promise.resolve(true); }
+    setStatus('syncing');
+    flushing = (function step(){
+      if (!queue.length){ flushing = null; setStatus('synced'); return Promise.resolve(true); }
+      var op = queue[0];
+      return run(op).then(function(){ if (queue[0] === op) queue.shift(); else queue = queue.filter(function(o){ return o !== op; }); saveQueue(); return step(); });
+    })().catch(function(e){ flushing = null; setStatus('error', e); return false; });
+    return flushing;
+  }
+  function pull(){
+    return Promise.resolve(client.from('bets').select('id,data,slip_image_path')).then(chk).then(function(r){
+      var ups = {}, dels = {};
+      queue.forEach(function(o){ if (o.t === 'up') ups[o.id] = 1; if (o.t === 'del') dels[o.id] = 1; });
+      var server = (r.data || []).map(function(x){ var b = Object.assign({}, x.data, { id:x.id }); if (x.slip_image_path) b.slipImagePath = x.slip_image_path; return b; });
+      var merged = server.filter(function(b){ return !dels[b.id] && !ups[b.id]; }).concat(cache.filter(function(b){ return ups[b.id]; }));
+      cache = merged; lastJson = {}; cache.forEach(function(b){ lastJson[b.id] = JSON.stringify(b); }); write();
+      return Promise.resolve(client.from('user_settings').select('odds_style').maybeSingle()).then(function(s){
+        if (s && !s.error && s.data && s.data.odds_style && !queue.some(function(o){ return o.t === 'set'; })){ settings.oddsStyle = s.data.odds_style; jset(ck('settings'), settings); }
+      }, function(){});
+    }).then(function(){ return tpull(); }).then(function(){ emit('change'); return flush(); }, function(e){ setStatus('error', e); return false; });
+  }
+  var api = {
+    /* ---- bets ---- */
+    getBets: function(){ return load(); },
+    saveBets: function(list){
+      load();
+      if (mode === 'cloud'){
+        var seen = {};
+        list.forEach(function(b){ seen[b.id] = 1; var j = JSON.stringify(b); if (lastJson[b.id] !== j){ lastJson[b.id] = j; enqueue({ t:'up', id:b.id }); } });
+        Object.keys(lastJson).forEach(function(id){   /* gone since last save (lastJson, not cache: the UI may share the array) */
+          if (seen[id]) return; var old = JSON.parse(lastJson[id]); delete lastJson[id]; enqueue({ t:'del', id:id, path:old.slipImagePath || null });
+        });
+      }
+      cache = list; write(); if (mode === 'cloud') flush();
+    },
+    saveBet: function(b){ load(); var l = cache.slice(), i = l.findIndex(function(x){ return x.id === b.id; }); if (i >= 0) l[i] = b; else l.push(b); api.saveBets(l); return b; },
+    deleteBet: function(id){
+      load(); var b = cache.find(function(x){ return x.id === id; });
+      api.saveBets(cache.filter(function(x){ return x.id !== id; }));
+      return b && b.slipImageId ? api.deleteImage(b.slipImageId).catch(function(){}) : Promise.resolve();
+    },
+    /* ---- deposits / withdrawals (each entry is its own record) ---- */
+    getTxns: function(){ return tload(); },
+    saveTxns: function(list){
+      tload();
+      if (mode === 'cloud'){
+        var seen = {};
+        list.forEach(function(t){ seen[t.id] = 1; var j = JSON.stringify(t); if (tlast[t.id] !== j){ tlast[t.id] = j; tenqueue({ t:'tup', id:t.id }); } });
+        Object.keys(tlast).forEach(function(id){ if (!seen[id]){ delete tlast[id]; tenqueue({ t:'tdel', id:id }); } });
+      }
+      tcache = list; twrite(); if (mode === 'cloud') tflush();
+    },
+    saveTxn: function(t){ tload(); var l = tcache.slice(), i = l.findIndex(function(x){ return x.id === t.id; }); if (i >= 0) l[i] = t; else l.push(t); api.saveTxns(l); return t; },
+    deleteTxn: function(id){ tload(); api.saveTxns(tcache.filter(function(x){ return x.id !== id; })); },
+    /* state: 'ok' | 'missing' (transactions table not created yet) | 'error'; pending = unsynced deposit/withdrawal changes */
+    txSync: function(){ return { state: mode === 'cloud' ? tstate : 'ok', pending: mode === 'cloud' ? tqueue.length : 0 }; },
+    localTxnCount: function(){ var l = jget(K.txns, []); return Array.isArray(l) ? l.length : 0; },
+    /* ---- slip screenshots ---- */
+    getImage: function(key){
+      if (!key) return Promise.resolve(null);
+      if (mode !== 'cloud') return images.get(key).then(function(v){ return v || null; });
+      return imgGet(key).then(function(blob){
+        if (blob) return blob;
+        var b = cache.find(function(x){ return x.slipImageId === key; });
+        if (!b || !b.slipImagePath || !client) return null;
+        return Promise.resolve(client.storage.from('slips').createSignedUrl(b.slipImagePath, 3600)).then(chk).then(function(r){
+          return F(r.data.signedUrl).then(function(res){ if (!res.ok) throw new Error('HTTP ' + res.status); return res.blob(); });
+        }).then(function(bl){ images.put(key, bl).catch(function(){}); return bl; });
+      });
+    },
+    putImage: function(key, blob){
+      if (mode !== 'cloud') return images.put(key, blob);
+      mem[key] = blob; images.put(key, blob).then(function(){ delete mem[key]; }, function(){});
+      enqueue({ t:'img', key:key }); flush(); return Promise.resolve();
+    },
+    deleteImage: function(key){ delete mem[key]; return images.del(key); },
+    imageIds: function(){ return images.keys(); },
+    imagesAvailable: function(){ return images.keys().then(function(){ return true; }, function(){ return false; }); },
+    /* ---- settings ---- */
+    settings: function(){ return settings; },
+    saveSettings: function(s){
+      if (mode !== 'cloud' || s.oddsStyle === settings.oddsStyle) { settings = Object.assign(settings, s); return; }
+      settings = Object.assign(settings, s); jset(ck('settings'), settings); enqueue({ t:'set' }); flush();
+    },
+    /* ---- mode / accounts ---- */
+    mode: function(){ return mode; }, user: function(){ return user; }, status: function(){ return Object.assign({}, status, { pending:queue.length, tx:tstate, txPending:tqueue.length }); },
+    pending: function(){ return queue.length; },
+    savedMode: function(){ return ls.getItem(K.mode); },
+    savedUser: function(){ return jget(K.user, null); },
+    useLocal: function(remember){ mode = 'local'; user = null; client = null; cache = null; queue = []; settings = {}; tcache = null; tqueue = []; tstate = 'ok'; if (remember) ls.setItem(K.mode, 'local'); load(); emit('change'); },
+    clearMode: function(){ ls.removeItem(K.mode); },
+    /* switch to the cloud cache for this user right away (works offline); pull + push once a client is attached */
+    useCloud: function(u, c){
+      mode = 'cloud'; user = { id:u.id, email:u.email }; client = c || null; cache = null; mem = {}; tcache = null; tstate = 'ok'; tqueue = jget(ck('txq'), []); tload();
+      ls.setItem(K.mode, 'cloud'); jset(K.user, user);
+      queue = jget(ck('queue'), []); settings = jget(ck('settings'), {}); load(); emit('change');
+      return client ? pull() : Promise.resolve(false);
+    },
+    attachClient: function(c){ client = c; return mode === 'cloud' ? pull() : Promise.resolve(false); },
+    flush: function(){ var p = flush(); return tflush().then(function(){ return p; }); }, pull: function(){ return client ? pull() : Promise.resolve(false); },
+    /* sign out: forget this user's cached data on this device */
+    signOutCleanup: function(){
+      if (user){ ['bets','queue','settings','txns','txq'].forEach(function(s){ ls.removeItem(ck(s)); }); }
+      ls.removeItem(K.user); ls.removeItem(K.mode); mode = 'local'; user = null; client = null; cache = null; queue = []; settings = {}; tcache = null; tqueue = []; tstate = 'ok'; load(); emit('change');
+    },
+    localBetCount: function(){ var l = jget(K.bets, []); return Array.isArray(l) ? l.length : 0; },
+    /* move local-mode bets (and their screenshots) into the signed-in account */
+    migrateLocal: function(){
+      if (mode !== 'cloud') return Promise.resolve(0);
+      load(); tload();
+      var local = jget(K.bets, []), ltx = jget(K.txns, []); if (!Array.isArray(local)) local = []; if (!Array.isArray(ltx)) ltx = [];
+      if (!local.length && !ltx.length) return Promise.resolve(0);
+      var have = {}; cache.forEach(function(b){ have[b.id] = 1; });
+      var moved = local.filter(function(b){ return b && b.id && !have[b.id]; });
+      moved.forEach(function(b){ cache.push(b); lastJson[b.id] = JSON.stringify(b); enqueue({ t:'up', id:b.id }); if (b.slipImageId) enqueue({ t:'img', key:b.slipImageId }); });
+      var thave = {}; tcache.forEach(function(t){ thave[t.id] = 1; });
+      var tmoved = ltx.filter(function(t){ return t && t.id && !thave[t.id]; });
+      tmoved.forEach(function(t){ tcache.push(t); tlast[t.id] = JSON.stringify(t); tenqueue({ t:'tup', id:t.id }); });
+      write(); twrite(); jset(K.bets, []); jset(K.txns, []); emit('change');
+      return Promise.all([flush(), tflush()]).then(function(){ return moved.length + tmoved.length; });
+    },
+    on: function(type, fn){ listeners[type].push(fn); }
+  };
+  return api;
+}
+/* IndexedDB image cache (rejects when IndexedDB is unavailable) */
+function idbImages(win){
+  var dbp = null, OS = 'slipImages';
+  function db(){
+    if (!dbp){
+      dbp = new Promise(function(res, rej){
+        try {
+          if (!win.indexedDB) return rej(new Error('IndexedDB unavailable'));
+          var r = win.indexedDB.open('nightline', 1);
+          r.onupgradeneeded = function(){ if (!r.result.objectStoreNames.contains(OS)) r.result.createObjectStore(OS); };
+          r.onsuccess = function(){ res(r.result); };
+          r.onerror = r.onblocked = function(){ rej(r.error || new Error('IndexedDB blocked')); };
+        } catch(e){ rej(e); }
+      });
+      dbp.catch(function(){});
+    }
+    return dbp;
+  }
+  function tx(mode, fn){
+    return db().then(function(d){ return new Promise(function(res, rej){
+      var t = d.transaction(OS, mode), out = fn(t.objectStore(OS));
+      t.oncomplete = function(){ res(out && 'result' in out ? out.result : undefined); };
+      t.onerror = t.onabort = function(){ rej(t.error || new Error('IndexedDB error')); };
+    }); });
+  }
+  return {
+    get: function(k){ return tx('readonly', function(s){ return s.get(k); }); },
+    put: function(k, v){ return tx('readwrite', function(s){ s.put(v, k); }); },
+    del: function(k){ return tx('readwrite', function(s){ s.delete(k); }); },
+    keys: function(){ return tx('readonly', function(s){ return s.getAllKeys(); }).then(function(k){ return k || []; }); }
+  };
+}
+var Store = typeof window !== 'undefined' && window.localStorage ? makeStore({ localStorage: window.localStorage, images: idbImages(window), fetch: function(u){ return window.fetch(u); } }) : null;
+</script>
+
+<script>
+(function(){
+  var KB = 'nightline.bets', KS = 'nightline.oddsStyle';
+  var $ = function(id){ return document.getElementById(id); };
+  var SPORTS = ['NFL','NBA','WNBA','MLB','NHL','NCAAF','NCAAB','Soccer','Tennis','Golf','UFC','Boxing'];
+  var bets = Store.getBets(), txns = Store.getTxns();
+  var style = localStorage.getItem(KS) === 'decimal' ? 'decimal' : 'american';
+  var view = 'home', editing = null, result = 'pending', ftype = 'single', calMonth = null, selDay = null;
+
+  function syncParlay(b){
+    if (b.type !== 'parlay') return b;
+    b.result = effectiveResult(b); b.odds = combinedOdds(b.legs); b.sport = 'Parlay'; b.desc = 'Parlay \u00b7 ' + b.legs.length + ' legs';
+    return b;
+  }
+  bets.forEach(syncParlay);
+
+  function persist(){ try { Store.saveBets(bets); localStorage.setItem(KS, style); Store.saveSettings({ oddsStyle: style }); } catch(e){ toast('Couldn\u2019t save'); } }
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function today(){ var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+  function tone(n){ return n > 0 ? 'up' : n < 0 ? 'down' : ''; }
+  function pct(x, signed){ return x == null ? '\u2014' : (signed && x > 0 ? '+' : '') + (x * 100).toFixed(1) + '%'; }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  var tt; function toast(m){ var t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(function(){ t.classList.remove('show'); }, 1800); }
+  function sorted(){ return bets.slice().sort(function(a, b){ return a.date < b.date ? 1 : a.date > b.date ? -1 : (b.created || 0) - (a.created || 0); }); }
+  var sportOpts = '<option value="">Choose\u2026</option>' + SPORTS.map(function(s){ return '<option>' + s + '</option>'; }).join('') + '<option value="__other">Other</option>';
+
+  /* ---------- Rows ---------- */
+  function matchupLine(x){
+    if (!x.game || !x.game.home) return '';
+    return String(x.desc).indexOf(x.game.home) >= 0 ? '' : '<div class="meta one">' + esc(x.game.away + ' @ ' + x.game.home) + '</div>';
+  }
+  function shortDate(d){ var p = d.split('-'); return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }).replace(/,/g, ''); }
+  function legLine(b){ return b.legs.map(function(l){ var d = legDate(l, b); return (d !== b.date ? shortDate(d) + ' \u00b7 ' : '') + l.desc; }).join(' + '); }
+  function resLabel(r){ return r.charAt(0).toUpperCase() + r.slice(1); }
+  function rowHtml(b){
+    var p = profit(b), r = effectiveResult(b), amt;
+    if (r === 'pending') amt = '<span class="amt muted">Pending</span>';
+    else if (r === 'push') amt = '<span class="amt muted">Push</span>';
+    else if (r === 'cashout') amt = '<span class="amt ' + tone(p) + '">' + money(p, true) + '<span class="cobadge">Cashed out</span></span>';
+    else amt = '<span class="amt ' + tone(p) + '">' + money(p, true) + '</span>';
+    var body;
+    if (b.type === 'parlay'){
+      body = '<div class="name">Parlay \u00b7 ' + b.legs.length + ' legs</div>' +
+        '<div class="meta one">' + esc(legLine(b)) + '</div>' +
+        '<div class="meta">' + money(b.stake) + ' \u00b7 ' + formatOdds(b.odds, style) + '</div>';
+    } else {
+      body = '<div class="name">' + esc(b.desc) + '</div>' + matchupLine(b) +
+        '<div class="meta">' + esc(b.sport) + ' \u00b7 ' + money(b.stake) + ' \u00b7 ' + formatOdds(b.odds, style) + '</div>';
+    }
+    return '<button class="row" data-id="' + esc(b.id) + '"><div>' + body + '</div>' + amt + '</button>';
+  }
+  /* ---------- Deposits / withdrawals ---------- */
+  function txRowHtml(t, showDate){
+    var dep = t.type === 'deposit';
+    var meta = [showDate ? shortDate(t.date) : '', t.note || ''].filter(Boolean).join(' \u00b7 ');
+    return '<button type="button" class="row txrow" data-tx="' + esc(t.id) + '"><div style="min-width:0"><div class="name">' + (dep ? 'Deposit' : 'Withdrawal') + '</div>' + (meta ? '<div class="meta one">' + esc(meta) + '</div>' : '') + '</div><span class="amt">' + money(t.amount) + '</span></button>';
+  }
+  function txSorted(list){ return list.slice().sort(function(a, b){ return a.date < b.date ? 1 : a.date > b.date ? -1 : (b.created || 0) - (a.created || 0); }); }
+  var txEditing = null, txKind = 'deposit';
+  function setTxKind(k){
+    txKind = k; document.querySelectorAll('#txType button').forEach(function(b){ b.classList.toggle('on', b.dataset.k === k); });
+    $('txSave').textContent = 'Save ' + (k === 'deposit' ? 'deposit' : 'withdrawal');
+    if (!txEditing) $('txTitle').textContent = k === 'deposit' ? 'Add deposit' : 'Add withdrawal';
+  }
+  function openTx(id, kind){
+    var t = id ? txns.find(function(x){ return x.id === id; }) : null;
+    txEditing = t ? t.id : null;
+    $('tAmt').value = t ? Number(t.amount).toFixed(2) : ''; $('tDate').value = t ? t.date : today(); $('tNote').value = t ? (t.note || '') : '';
+    ['tAmt','tDate'].forEach(function(i){ $(i).classList.remove('bad'); }); $('eAmt').textContent = $('eTDate').textContent = '';
+    $('txTitle').textContent = t ? 'Edit ' + (t.type === 'deposit' ? 'deposit' : 'withdrawal') : 'Add deposit';
+    $('txDel').style.display = t ? '' : 'none';
+    setTxKind(t ? t.type : (kind || 'deposit'));
+    openSheet('txSheet');
+    if (!t) setTimeout(function(){ try { $('tAmt').focus(); } catch(e){} }, 250);
+  }
+  $('txType').addEventListener('click', function(e){ var b = e.target.closest('button[data-k]'); if (b) setTxKind(b.dataset.k); });
+  $('txAdd').onclick = function(){ openTx(null); };
+  $('txForm').onsubmit = function(e){
+    e.preventDefault();
+    var a = parseStake($('tAmt').value), d = $('tDate').value, ok = true;
+    var amt = a && a.ok ? a.value : NaN;
+    if (!(amt > 0)){ $('eAmt').textContent = 'Enter an amount above $0'; $('tAmt').classList.add('bad'); ok = false; } else { $('eAmt').textContent = ''; $('tAmt').classList.remove('bad'); }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)){ $('eTDate').textContent = 'Pick a date'; $('tDate').classList.add('bad'); ok = false; } else { $('eTDate').textContent = ''; $('tDate').classList.remove('bad'); }
+    if (!ok) return;
+    var old = txEditing ? txns.find(function(x){ return x.id === txEditing; }) : null;
+    var t = { id: old ? old.id : 't' + uid(), type: txKind, amount: round2(amt), date: d, created: old ? old.created : Date.now() };
+    var note = $('tNote').value.trim().slice(0, 80); if (note) t.note = note;
+    try { Store.saveTxn(t); } catch(err){ return toast('Couldn\u2019t save'); }
+    txns = Store.getTxns(); closeSheets(); toast((t.type === 'deposit' ? 'Deposit' : 'Withdrawal') + (old ? ' updated' : ' saved'));
+  };
+  $('txDel').onclick = function(){
+    if (!txEditing || !confirm('Delete this ' + (txKind === 'deposit' ? 'deposit' : 'withdrawal') + '?')) return;
+    Store.deleteTxn(txEditing); txEditing = null; txns = Store.getTxns(); closeSheets(); toast('Deleted');
+  };
+  document.addEventListener('click', function(e){ var r = e.target.closest('.row[data-tx], .hrow[data-tx]'); if (r && !r.closest('.clone')) openTx(r.dataset.tx); });
+  /* ---------- Slide 2: period deposit/withdraw totals + every entry, oldest first ---------- */
+  function txChrono(list){ return list.slice().sort(function(a, b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.created || 0) - (b.created || 0); }); }
+  function txTime(t){   /* time of day from the entry's created timestamp; legacy entries without a real timestamp -> null */
+    var c = Number(t.created); if (!(c > 1e12)) return null;
+    var d = new Date(c), h = d.getHours(), m = d.getMinutes();
+    return (h % 12 || 12) + ':' + (m < 10 ? '0' : '') + m + ' ' + (h < 12 ? 'AM' : 'PM');
+  }
+  function cashRowHtml(t){
+    var dep = t.type === 'deposit', tm = txTime(t), ts = shortDate(t.date) + (tm ? ' \u00b7 ' + tm : '');
+    return '<button type="button" class="hrow" data-tx="' + esc(t.id) + '"><span style="min-width:0"><span class="ty" style="display:block">' + (dep ? 'Deposit' : 'Withdraw') + '</span><span class="ts" style="display:block">' + esc(ts) + (t.note ? ' \u00b7 <span class="nt">' + esc(t.note) + '</span>' : '') + '</span></span><span class="am">' + money(t.amount) + '</span></button>';
+  }
+  function renderCash(rg, f, per){
+    var list = txChrono(txns.filter(function(t){ return t.date >= rg.start && t.date <= rg.end; }));
+    $('hDep').textContent = money(f.deposits); $('hWd').textContent = money(f.withdrawals);
+    $('txList').innerHTML = list.length ? list.map(cashRowHtml).join('') : '<div class="hempty">Nothing logged ' + periodName(per, homeOff, rg, today()).empty + '.</div>';
+    $('txList').classList.toggle('empty0', !list.length);
+  }
+  /* Home Week | Month switch (device-local preference, default Week; week = Mon\u2013Sun local time) */
+  var KP = 'nightline.homePeriod';
+  var homeOff = 0;   /* 0 = current period, -1 = previous ...; never persisted (Home always opens on the current period) */
+  $('pPrev').onclick = function(){ homeOff--; render(); };
+  $('pNext').onclick = function(){ if (homeOff < 0){ homeOff++; render(); } };
+  $('pNow').onclick = function(){ homeOff = 0; render(); };
+  function homePeriod(){ var v = null; try { v = localStorage.getItem(KP); } catch(e){} return v === 'month' ? 'month' : 'week'; }
+  $('periodSeg').addEventListener('click', function(e){
+    var t = e.target.closest('button[data-p]'); if (!t) return;
+    try { localStorage.setItem(KP, t.dataset.p); } catch(err){}
+    homeOff = 0; render();   /* switching Week <-> Month returns to the current period */
+  });
+  function periodLabel(rg){
+    var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], a = rg.start.split('-').map(Number), b = rg.end.split('-').map(Number);
+    if (rg.kind === 'month') return ['January','February','March','April','May','June','July','August','September','October','November','December'][a[1]-1] + ' ' + a[0];
+    return 'Mon ' + M[a[1]-1] + ' ' + a[2] + ' \u2013 Sun ' + (b[1] !== a[1] ? M[b[1]-1] + ' ' : '') + b[2];
+  }
+  /* ---------- Hero carousel: profit <-> deposits & withdrawals (2 slides), wraps around; swipe / drag / arrows / dots ---------- */
+  var heroTitle = 'This week', heroIdx = 0, HN = 2, heroPos = 1, heroBusy = false;   /* heroPos counts the leading clone */
+  var track = $('heroTrack'), car = $('heroCar');
+  function heroPlace(pos, anim){
+    heroPos = pos; track.classList.toggle('nt', !anim);
+    track.style.transform = 'translateX(calc(' + (-pos) + ' * (100% + 12px)))';
+  }
+  function heroMark(){
+    for (var i = 0; i < HN; i++){ var sl = $('hs' + i); sl.setAttribute('aria-hidden', i === heroIdx ? 'false' : 'true'); if (i === heroIdx) sl.removeAttribute('inert'); else sl.setAttribute('inert', ''); }
+    document.querySelectorAll('#heroDots button').forEach(function(d){ d.setAttribute('aria-current', +d.dataset.i === heroIdx ? 'true' : 'false'); });
+    car.setAttribute('aria-label', heroTitle + ' summary, ' + ['profit','deposits and withdrawals'][heroIdx] + ' (' + (heroIdx + 1) + ' of ' + HN + ')');
+  }
+  function heroGo(i, anim){
+    if (anim === undefined) anim = true;
+    var pos = i + 1;                                  /* -1 -> leading clone (of last), HN -> trailing clone (of first) */
+    heroIdx = (i % HN + HN) % HN; heroMark();
+    var ae = document.activeElement; if (ae && ae.closest && ae.closest('.hslide[inert]')) car.focus({preventScroll: true});   /* keep keyboard focus in the carousel */
+    heroPlace(pos, anim); heroFit();
+    if (pos !== heroIdx + 1){
+      if (!anim) return heroPlace(heroIdx + 1, false);
+      heroBusy = true;
+      var done = function(){ track.removeEventListener('transitionend', done); clearTimeout(tm); heroBusy = false; heroPlace(heroIdx + 1, false); void track.offsetWidth; };
+      var tm = setTimeout(done, 450); track.addEventListener('transitionend', done);
+    }
+  }
+  function heroStep(d){ if (heroBusy) return; heroGo(heroIdx + d); }
+  /* drag (touch + mouse) */
+  var drag = null;
+  car.addEventListener('pointerdown', function(e){
+    if (heroBusy || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    drag = { x:e.clientX, y:e.clientY, id:e.pointerId, w:car.clientWidth, dx:0, on:false };
+  });
+  car.addEventListener('pointermove', function(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.on){
+      if (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(dy)) { if (Math.abs(dy) > 10) drag = null; return; }
+      drag.on = true; car.classList.add('drag'); try { car.setPointerCapture(e.pointerId); } catch(err){}
+    }
+    drag.dx = dx; track.classList.add('nt');
+    track.style.transform = 'translateX(calc(' + (-heroPos) + ' * (100% + 12px) + ' + dx + 'px))';
+  });
+  function endDrag(e){
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    var d = drag; drag = null; car.classList.remove('drag');
+    if (!d.on) return;
+    var th = Math.min(60, d.w * 0.18);
+    if (d.dx <= -th) heroGo(heroIdx + 1); else if (d.dx >= th) heroGo(heroIdx - 1); else heroPlace(heroPos, true);
+    car._justDragged = true; setTimeout(function(){ car._justDragged = false; }, 0);
+  }
+  car.addEventListener('pointerup', endDrag); car.addEventListener('pointercancel', endDrag);
+  car.addEventListener('click', function(e){ if (car._justDragged){ e.preventDefault(); e.stopPropagation(); } }, true);
+  car.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight'){ e.preventDefault(); heroStep(1); }
+    else if (e.key === 'ArrowLeft'){ e.preventDefault(); heroStep(-1); }
+  });
+  $('heroDots').addEventListener('click', function(e){ var b = e.target.closest('button[data-i]'); if (b && !heroBusy) heroGo(+b.dataset.i); });
+  function heroClones(){
+    document.querySelectorAll('#heroTrack .clone').forEach(function(c){ c.innerHTML = $('hs' + c.dataset.clone).innerHTML.replace(/ id="[^"]*"/g, '').replace(/ aria-controls="[^"]*"/g, '').replace(/<button /g, '<button tabindex="-1" '); c.setAttribute('inert', ''); });
+  }
+  function heroFit(){ var h = $('hs' + heroIdx).offsetHeight; if (h) car.style.height = h + 'px'; }   /* carousel height follows the active slide */
+  if (window.ResizeObserver) new ResizeObserver(function(){ heroFit(); }).observe($('hs1')), new ResizeObserver(function(){ heroFit(); }).observe($('hs0'));
+  window.addEventListener('resize', heroFit);
+  heroGo(0, false);   /* always start on profit */
+  function render(){
+    /* Home follows the Week | Month switch; all-time net is intentionally not shown on Home */
+    var HP = homePrefs(); if (!HP.period) homeOff = 0;
+    var per = HP.period ? homePeriod() : 'week', rg = periodShift(per, today(), homeOff), nm = periodName(per, homeOff, rg, today()), P = nm.title, pl = nm.phrase; heroTitle = P;
+    var all = stats(bets), wk = periodTotals(bets, rg), f = cashFlow(txns, rg);
+    document.querySelectorAll('#periodSeg button').forEach(function(x){ var on = x.dataset.p === per; x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    $('hLbl').textContent = P + ' profit';
+    $('hs0').setAttribute('aria-label', '1 of 2: ' + P + ' profit'); $('hs1').setAttribute('aria-label', '2 of 2: ' + P + ' deposits and withdrawals');
+    $('lStaked').textContent = 'Wagered ' + pl; $('lWin').textContent = 'Win rate ' + pl;
+    heroMark();
+    $('hNet').textContent = money(wk.net, true); $('hNet').className = 'big ' + tone(wk.net);
+    $('hSub').textContent = recordText(wk) + ' \u00b7 ROI ' + pct(wk.roi, true) + (wk.pending ? ' \u00b7 ' + wk.pending + ' open' : '');
+    renderCash(rg, f, per); heroClones(); heroFit();
+    $('sStaked').textContent = money(wk.wagered);
+    $('sPeriodCnt').textContent = wk.count + (wk.count === 1 ? ' bet' : ' bets');
+    $('sWin').textContent = pct(wk.winRate);
+    $('sWinAll').textContent = 'All-time ' + pct(all.winRate);
+    $('pRange').textContent = periodLabel(rg);
+    var U = per === 'week' ? 'week' : 'month';
+    $('pPrev').setAttribute('aria-label', 'Previous ' + U); $('pNext').setAttribute('aria-label', 'Next ' + U);
+    $('pNext').disabled = homeOff >= 0; applyHome(); $('pNow').textContent = per === 'week' ? 'This week' : 'This month';
+    $('sRecord').textContent = recordText(all);
+    /* all-time bankroll estimate: deposits - withdrawals + settled results - open stakes (never follows the period) */
+    var be = balanceEstimate(txns, bets), hasDep = txns.some(function(t){ return t.type === 'deposit'; });
+    $('sBank').textContent = hasDep ? money(be.balance) : '\u2014'; $('sBank').className = 'val' + (hasDep && be.balance < 0 ? ' down' : '');
+    $('sBankSub').textContent = !hasDep ? 'Log a deposit to start' : be.open > 0 ? 'All-time \u00b7 ' + money(be.open) + ' in open bets' : 'Deposits \u2212 withdrawals \u00b1 results';
+    var rec = sorted().slice(0, 10);
+    $('recent').innerHTML = rec.length ? '<div class="list">' + rec.map(rowHtml).join('') + '</div>' : '<div class="empty">Nothing logged yet.</div>';
+    renderCal();
+    var open = $('logSheet').classList.contains('open');
+    document.querySelectorAll('.bar button').forEach(function(b){ b.classList.toggle('active', open ? b.dataset.nav === 'log' : b.dataset.nav === view); });
+  }
+
+  /* ---------- Calendar (month grid; bets count on their bet date) ---------- */
+  function renderCal(){
+    if (!calMonth) calMonth = today().slice(0,7);
+    var p = calMonth.split('-'), tot = monthTotals(bets, calMonth), days = dayTotals(bets), td = today();
+    $('calMonth').textContent = new Date(+p[0], +p[1]-1, 1).toLocaleDateString(undefined, { month:'long', year:'numeric' });
+    $('calSum').innerHTML = tot.count ? '<span class="' + tone(tot.net) + '">' + (tot.settled ? money(tot.net, true) : 'Pending') + '</span> net \u00b7 ' + money(tot.wagered) + ' wagered' : 'Nothing logged this month';
+    var legDays = {};
+    bets.forEach(function(b){ if (b.type === 'parlay') b.legs.forEach(function(l){ var d = legDate(l, b); if (d !== b.date) legDays[d] = 1; }); });
+    var txDays = {}; txns.forEach(function(t){ txDays[t.date] = 1; });
+    var html = ['S','M','T','W','T','F','S'].map(function(d){ return '<div class="dow">' + d + '</div>'; }).join('');
+    html += monthGrid(calMonth).map(function(d){
+      if (!d) return '<div class="cd blank"></div>';
+      var t = days[d], inner = '<span class="cn">' + (+d.slice(8)) + '</span>';
+      if (t) inner += (t.settled ? '<span class="cp ' + tone(t.net) + '">' + moneyShort(t.net, true) + '</span>' : '<span class="cp pend">Pending</span>') + '<span class="cw">' + moneyShort(t.wagered) + '</span>';
+      else if (legDays[d] || txDays[d]) inner += '<span class="cdot" title="' + (legDays[d] ? 'Parlay leg' : 'Deposit / withdrawal') + '"></span>';
+      return '<button class="cd' + (t ? ' has' : '') + (d === td ? ' today' : '') + (d === selDay ? ' sel' : '') + '" data-day="' + d + '" aria-label="' + d + '">' + inner + '</button>';
+    }).join('');
+    $('calGrid').innerHTML = html;
+    var dd = $('dayDetail');
+    if (!selDay || selDay.slice(0,7) !== calMonth){ dd.innerHTML = '<div class="empty">' + (tot.count ? 'Tap a day to see its bets.' : '') + '</div>'; if (!tot.count) dd.innerHTML = ''; return; }
+    /* bet attribution unchanged: deposits/withdrawals are listed below, never added to the day's betting net */
+    var list = sorted().filter(function(b){ return b.date === selDay; }), t2 = days[selDay], legs = legsOnDay(bets, selDay);
+    var dtx = txSorted(txns.filter(function(t){ return t.date === selDay; }));
+    var out = '<div class="section"><span>' + esc(shortDate(selDay)) + '</span>' + (t2 ? '<span class="daynet"><span class="' + tone(t2.net) + '">' + (t2.settled ? money(t2.net, true) : 'Pending') + '</span> \u00b7 ' + money(t2.wagered) + ' wagered</span>' : '') + '</div>';
+    out += list.length ? '<div class="list">' + list.map(rowHtml).join('') + '</div>' : (legs.length || dtx.length ? '' : '<div class="empty">Nothing logged this day.</div>');
+    if (legs.length){
+      out += '<div class="section"><span>Parlay legs played this day</span></div><div class="list">' + legs.map(function(x){
+        return '<button class="row legrow" data-id="' + esc(x.bet.id) + '"><div><div class="name">' + esc(x.leg.desc) + '</div><div class="meta">Leg of parlay \u00b7 placed ' + esc(shortDate(x.bet.date)) + ' \u00b7 ' + esc(x.leg.sport) + ' \u00b7 ' + formatOdds(x.leg.odds, style) + '</div></div><span class="amt muted">' + resLabel(x.leg.result || 'pending') + '</span></button>';
+      }).join('') + '</div>';
+    }
+    if (dtx.length){
+      var df = cashFlow(dtx, null);
+      out += '<div class="section"><span>Deposits &amp; withdrawals</span><span class="daynet">' + [df.deposits ? 'Deposited ' + money(df.deposits) : '', df.withdrawals ? 'Withdrawn ' + money(df.withdrawals) : ''].filter(Boolean).join(' \u00b7 ') + '</span></div><div class="list" id="dayTx">' + dtx.map(function(t){ return txRowHtml(t, false); }).join('') + '</div>';
+    }
+    dd.innerHTML = out;
+  }
+  $('calPrev').onclick = function(){ calMonth = shiftMonth(calMonth, -1); selDay = null; renderCal(); };
+  $('calNext').onclick = function(){ calMonth = shiftMonth(calMonth, 1); selDay = null; renderCal(); };
+  $('calGrid').addEventListener('click', function(e){ var c = e.target.closest('[data-day]'); if (!c) return; selDay = selDay === c.dataset.day ? null : c.dataset.day; renderCal(); });
+
+  /* ---------- Navigation + sheets ---------- */
+  function openSheet(id){ closeSheets(true); $(id).classList.add('open'); $('scrim').classList.add('open'); render(); }
+  function closeSheets(silent){ document.querySelectorAll('.sheet').forEach(function(s){ s.classList.remove('open'); }); $('scrim').classList.remove('open'); if (!silent) render(); }
+  $('scrim').onclick = function(){ closeSheets(); };
+  document.querySelectorAll('[data-close]').forEach(function(b){ b.onclick = function(){ closeSheets(); }; });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ if ($('imgView').classList.contains('open')) return $('imgView').classList.remove('open'); closeSheets(); } });
+  document.querySelectorAll('.bar button').forEach(function(b){ b.onclick = function(){
+    if (b.dataset.nav === 'log') return openLog(null);
+    showView(b.dataset.nav);
+  }; });
+  /* ---------- Home screen preferences (device-local, never synced) ---------- */
+  var KH = 'nightline.homeItems';
+  var HOME_ITEMS = [
+    { k:'period', l:'Week|Month & date navigation', d:'Off: Home uses the current week' },
+    { k:'carousel', l:'Profit / deposits carousel' },
+    { k:'wagered', l:'Wagered card' },
+    { k:'winrate', l:'Win rate card' },
+    { k:'bankroll', l:'Bankroll estimate card' },
+    { k:'record', l:'All-time record' },
+    { k:'recent', l:'Recent bets' }];
+  function homePrefs(){
+    var v = {}; try { v = JSON.parse(localStorage.getItem(KH) || '{}') || {}; } catch(e){ v = {}; }
+    var o = {}; HOME_ITEMS.forEach(function(it){ o[it.k] = v[it.k] !== false; }); return o;
+  }
+  function setHomePref(k, on){
+    var p = homePrefs(); p[k] = !!on;
+    try { localStorage.setItem(KH, JSON.stringify(p)); } catch(e){}
+    if (k === 'period' && !on) homeOff = 0;
+    render();
+  }
+  function applyHome(){
+    var p = homePrefs(), any = false;
+    document.querySelectorAll('#v-home [data-home]').forEach(function(el){ var on = p[el.dataset.home]; el.hidden = el.id === 'pNowRow' ? (!on || homeOff === 0) : !on; });
+    $('homeGrid').hidden = !p.wagered && !p.winrate; $('homeGrid').classList.toggle('one', p.wagered !== p.winrate);
+    HOME_ITEMS.forEach(function(it){ if (p[it.k]) any = true; });
+    $('homeEmpty').hidden = any;
+    $('homePrefs').innerHTML = HOME_ITEMS.map(function(it){
+      return '<div class="prefrow"><span class="pl" id="hpl-' + it.k + '">' + esc(it.l) + (it.d ? '<span class="pd">' + esc(it.d) + '</span>' : '') + '</span>' +
+        '<button type="button" class="sw" role="switch" data-hk="' + it.k + '" aria-checked="' + (p[it.k] ? 'true' : 'false') + '" aria-labelledby="hpl-' + it.k + '"></button></div>';
+    }).join('');
+  }
+  $('homePrefs').addEventListener('click', function(e){ var b = e.target.closest('[data-hk]'); if (b) setHomePref(b.dataset.hk, b.getAttribute('aria-checked') !== 'true'); });
+  $('homeReset').onclick = function(){ try { localStorage.removeItem(KH); } catch(e){} render(); toast('Home screen reset'); };
+  function showView(v){
+    closeSheets(true); view = v;
+    if (view === 'cal' && !calMonth){ calMonth = today().slice(0,7); selDay = today(); }
+    document.querySelectorAll('.view').forEach(function(x){ x.classList.toggle('active', x.id === 'v-' + view); });
+    if (view === 'set') renderFmt();
+    window.scrollTo(0, 0); render();
+  }
+  document.addEventListener('click', function(e){ var r = e.target.closest('.row[data-id]'); if (r) openDetail(r.dataset.id); });
+
+  /* ---------- Bet detail ---------- */
+  var detId = null, detUrl = null;
+  function badge(r){ return '<span class="badge ' + (r === 'win' || r === 'loss' ? r : r === 'cashout' ? 'co' : '') + '">' + ({ win:'Won', loss:'Lost', push:'Push', pending:'Pending', cashout:'Cashed out' })[r] + '</span>'; }
+  function fullDate(d){ var p = d.split('-'); return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric', year:'numeric' }); }
+  function gameWhen(x, fallbackDate){
+    if (x.game && x.game.start){ var t = new Date(x.game.start); if (!isNaN(t)) return t.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }).replace(/,/g, '') + ' ' + t.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }); }
+    return shortDate(fallbackDate) + (x.time ? ' ' + x.time : '');
+  }
+  function legCard(x, r, date, co){
+    var mu = x.game && x.game.home ? x.game.away + ' @ ' + x.game.home : x.matchup;
+    var lab = { win:'Hit', loss:'Missed', push:'Push', pending: co ? 'Not settled \u00b7 cashed out' : 'Pending', cashout:'Cashed out' }[r];
+    return '<div class="dleg ' + (r === 'win' || r === 'loss' ? r : '') + '" data-r="' + r + '"><div style="min-width:0">' +
+      '<div class="name">' + esc(x.desc) + '</div>' + (mu ? '<div class="meta">' + esc(mu) + '</div>' : '') +
+      '<div class="meta">' + esc([x.sport, formatOdds(x.odds, style), gameWhen(x, date)].filter(Boolean).join(' \u00b7 ')) + '</div>' +
+      '</div><span class="lr">' + lab + '</span></div>';
+  }
+  function openDetail(id){
+    var b = bets.find(function(x){ return x.id === id; }); if (!b) return;
+    detId = id; var isP = b.type === 'parlay', r = effectiveResult(b), p = profit(b);
+    $('detTitle').textContent = isP ? 'Parlay \u00b7 ' + b.legs.length + ' legs' : b.desc;
+    var net = r === 'pending' ? '<span class="muted">To win ' + money(round2(b.stake * (b.odds - 1))) + '</span>' : '<span class="' + tone(p) + '">' + money(p, true) + '</span>';
+    var html = '<div class="det-head">' + badge(r) + (r === 'cashout' ? '<span>Cashed out for <b style="color:var(--text)">' + money(b.cashoutAmount || 0) + '</b></span>' : isP && b.override ? '<span>Result set manually</span>' : '') + '</div>' +
+      '<div class="det-grid"><div><div class="k">Stake</div><div class="v">' + money(b.stake) + '</div></div>' +
+      '<div><div class="k">' + (isP ? 'Combined odds' : 'Odds') + '</div><div class="v">' + formatOdds(b.odds, style) + '</div></div>' +
+      '<div><div class="k">Net profit</div><div class="v" id="detNet">' + net + '</div></div>' +
+      '<div><div class="k">Placed</div><div class="v" style="font-size:15px;margin-top:6px">' + esc(fullDate(b.date)) + '</div></div></div>';
+    html += '<div class="section"><span>' + (isP ? 'Legs' : 'Pick') + '</span></div>';
+    var co = r === 'cashout';
+    html += isP ? b.legs.map(function(l){ return legCard(l, l.result || 'pending', legDate(l, b), co); }).join('') : legCard(b, co ? 'pending' : r, b.date, co);
+    if (b.slipImageId) html += '<div class="section"><span>Scanned slip</span></div><div class="slipbox" id="detSlip"><div class="meta">Loading screenshot\u2026</div></div>';
+    $('detBody').innerHTML = html;
+    if (detUrl){ URL.revokeObjectURL(detUrl); detUrl = null; }
+    if (b.slipImageId) Store.getImage(b.slipImageId).then(function(blob){
+      if (detId !== id) return;
+      if (!blob){ $('detSlip').innerHTML = '<div class="meta">Screenshot not available on this device.</div>'; return; }
+      detUrl = URL.createObjectURL(blob);
+      $('detSlip').innerHTML = '<img class="slipimg" id="detImg" alt="Scanned slip" src="' + detUrl + '"><div class="meta">Tap to view full size<br>' + Math.round(blob.size / 1024) + ' KB</div>';
+    }, function(){ $('detSlip').innerHTML = '<div class="meta">Screenshot storage isn\u2019t available in this browser.</div>'; });
+    openSheet('detSheet');
+  }
+  $('detBody').addEventListener('click', function(e){ if (e.target.id === 'detImg'){ $('imgFull').src = e.target.src; $('imgView').classList.add('open'); } });
+  $('imgView').onclick = function(){ this.classList.remove('open'); };
+  $('detEdit').onclick = function(){ if (detId) openLog(detId); };
+  $('detDel').onclick = function(){
+    if (!detId || !confirm('Delete this bet?')) return;
+    var id = detId; detId = null; Store.deleteBet(id); bets = Store.getBets(); closeSheets(); toast('Deleted');
+  };
+
+  /* ---------- Game picker (ESPN public scoreboard + moneylines) ---------- */
+  var gameCache = {}, GAME_TTL = 120000;  /* in-memory per sport+date; 2-min TTL keeps odds fresh */
+  function getJSON(url, ms){
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, to = setTimeout(function(){ if (ctl) ctl.abort(); }, ms || 10000);
+    return fetch(url, ctl ? { signal: ctl.signal } : {}).then(function(r){ clearTimeout(to); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }, function(e){ clearTimeout(to); throw e; });
+  }
+  function loadGames(sport, date){
+    var key = sport + '|' + date;
+    if (gameCache[key] && Date.now() - gameCache[key].t > GAME_TTL) delete gameCache[key];
+    if (!gameCache[key]){
+      var asOf = new Date().toISOString();
+      var pr = Promise.all(GAME_FEEDS[sport].map(function(f){ return getJSON(espnUrl(f, date)).then(function(j){ return { ok:true, g:parseScoreboard(j, f) }; }, function(){ return { ok:false }; }); }))
+        .then(function(rs){
+          if (!rs.some(function(r){ return r.ok; })) throw new Error('load failed');
+          return rs.reduce(function(a, r){ return r.ok ? a.concat(r.g) : a; }, []).map(function(g){ if (g.odds) g.odds.asOf = asOf; return g; })
+            .sort(function(a, b){ return a.start < b.start ? -1 : a.start > b.start ? 1 : 0; });
+        });
+      gameCache[key] = { t: Date.now(), p: pr };
+      pr.catch(function(){ delete gameCache[key]; });
+    }
+    return gameCache[key].p;
+  }
+  function fetchCoreOdds(game){ return getJSON(coreOddsUrl(game.league, game.id), 8000).then(function(j){ var o = coreOdds(j); if (o) o.asOf = new Date().toISOString(); return o; }); }
+  function hasStarted(game, state){ if (state) return state !== 'pre'; var t = new Date(game.start).getTime(); return !isNaN(t) && t <= Date.now(); }
+  function storedGame(g){ return { id:g.id, league:g.league, start:g.start, away:g.away.name, home:g.home.name, awayShort:g.away.short, homeShort:g.home.short }; }
+  function gameStatus(g){
+    if (g.state === 'pre'){ var d = new Date(g.start); return isNaN(d) ? (g.detail || '') : d.toLocaleTimeString([], { hour:'numeric', minute:'2-digit' }); }
+    var sc = g.away.abbr + ' ' + g.away.score + '\u2013' + g.home.abbr + ' ' + g.home.score;
+    return (g.state === 'in' ? 'Live \u00b7 ' + (g.detail || '') : (g.detail || 'Final')) + ' \u00b7 ' + sc;
+  }
+  function makePicker(box, getSport, pickInput, oddsInput, getDate){
+    var P = { game:null, open:false, filter:'', token:0, odds:null, oddsState:'', auto:null, games:null };
+    box._gp = P;
+    var head = function(t, right){ return '<div class="gp-head"><span>' + t + '</span>' + (right || '') + '</div>'; };
+    function fill(input, v){ input.value = v; input.classList.remove('bad'); input.dispatchEvent(new Event('input', { bubbles:true })); }
+    P.reset = function(){ P.game = null; P.open = false; P.filter = ''; P.odds = null; P.auto = null; P.refresh(); };
+    P.getGame = function(){ return P.game; };
+    P.setGame = function(g, lg){
+      P.game = g || null; P.open = false; P.auto = null; P.odds = lg && lg.odds ? lg.odds : null;
+      var started = g && hasStarted(g, lg && lg.state);
+      P.oddsState = !g ? '' : started ? 'started' : 'loading';
+      P.refresh();
+      if (g && !started){
+        var gid = g.id;
+        fetchCoreOdds(g).then(function(o){ if (P.game && P.game.id === gid){ if (o) P.odds = o; P.oddsState = ''; if (!P.open) P.refresh(); } },
+          function(){ if (P.game && P.game.id === gid){ P.oddsState = ''; if (!P.open) P.refresh(); } });
+      }
+    };
+    P.fillOdds = function(side, ml){
+      fill(oddsInput, formatOdds(americanToDecimal(ml), style));
+      P.auto = { provider: (P.odds && P.odds.provider) || 'ESPN', side: side, american: ml, asOf: (P.odds && P.odds.asOf) || new Date().toISOString(), eventId: P.game && P.game.id };
+    };
+    P.getOddsSource = function(decimal){ var a = P.auto; return a && decimal != null && Math.abs(americanToDecimal(a.american) - decimal) < 1e-6 ? a : null; };
+    function price(v){ return v == null ? '' : '<b>' + esc(formatOdds(americanToDecimal(v), style)) + '</b>'; }
+    function chips(s){
+      var o = P.odds || {}, soccer = /^soccer\//.test(s.league || '');
+      var chip = function(text, side, ml, label){ return '<button type="button" class="chip" data-qp="' + esc(text) + '" data-side="' + side + '"' + (ml != null ? ' data-ml="' + ml + '"' : '') + '>' + esc(label || text) + price(ml) + '</button>'; };
+      var note;
+      if (P.oddsState === 'loading' && !P.odds) note = 'Loading odds\u2026';
+      else if (P.oddsState === 'started') note = 'Game started \u2014 lines are off. Enter odds yourself.';
+      else if (!P.odds) note = 'No lines posted yet \u2014 enter odds yourself.';
+      else note = 'Odds via ' + esc(P.odds.provider || 'ESPN') + ' \u00b7 ' + esc(new Date(P.odds.asOf).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })) + (P.oddsState === 'loading' ? ' \u00b7 refreshing\u2026' : '') + ' \u00b7 editable';
+      return '<div class="chips">' + chip((s.awayShort || s.away) + ' ML', 'away', o.away) + chip((s.homeShort || s.home) + ' ML', 'home', o.home) +
+        (soccer && o.draw != null ? chip('Draw', 'draw', o.draw) : '') + chip(s.away + ' @ ' + s.home, '', null, 'Matchup') + '</div><div class="gp-note">' + note + '</div>';
+    }
+    P.refresh = function(){
+      var sport = getSport(), date = getDate(), tok = ++P.token;
+      if (!GAME_FEEDS[sport] || !date){ box.innerHTML = ''; return; }
+      if (P.game && !P.open){
+        var s = P.game, when = new Date(s.start);
+        box.innerHTML = head('Game', '<span><button type="button" class="gp-link" data-gp="change">Change</button> \u00b7 <button type="button" class="gp-link" data-gp="clear">Unlink</button></span>') +
+          '<div class="gp-sel"><div class="gm">' + esc(s.away + ' @ ' + s.home) + '</div><div class="gs">' + (isNaN(when) ? '' : esc(when.toLocaleString([], { weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }))) + '</div>' + chips(s) + '</div>';
+        return;
+      }
+      box.innerHTML = head('Games') + '<div class="gp-msg">Loading games\u2026</div>';
+      loadGames(sport, date).then(function(games){
+        if (tok !== P.token) return;
+        if (!games.length){ box.innerHTML = head('Games') + '<div class="gp-msg">No ' + esc(sport) + ' games on this date.</div>'; return; }
+        P.games = games; renderList();
+      }, function(){
+        if (tok !== P.token) return;
+        box.innerHTML = head('Games') + '<div class="gp-msg">Couldn\u2019t load games (offline?). You can still type it in.<button type="button" class="gp-link" data-gp="retry">Retry</button></div>';
+      });
+    };
+    function renderList(){
+      var games = P.games || [], f = P.filter.toLowerCase();
+      var shown = f ? games.filter(function(g){ return (g.away.name + ' ' + g.home.name + ' ' + g.away.abbr + ' ' + g.home.abbr + ' ' + g.label).toLowerCase().indexOf(f) >= 0; }) : games;
+      var list = shown.map(function(g){
+        return '<button type="button" class="gp-row" data-gid="' + esc(g.id) + '" data-lg="' + esc(g.league) + '"><span class="gm">' + (g.label ? '<span class="gl">' + esc(g.label) + '</span>' : '') +
+          esc(g.away.short + ' @ ' + g.home.short) + '</span><span class="gs">' + esc(gameStatus(g)) + '</span></button>';
+      }).join('') || '<div class="gp-row gp-msg">No games match.</div>';
+      var focused = document.activeElement && box.contains(document.activeElement) && document.activeElement.classList.contains('gp-filter');
+      if (focused && box.querySelector('.gp-list')){ box.querySelector('.gp-list').innerHTML = list; return; }
+      box.innerHTML = head('Games \u00b7 ' + games.length, P.game ? '<button type="button" class="gp-link" data-gp="close">Cancel</button>' : '') +
+        (games.length > 6 ? '<input type="search" class="gp-filter" placeholder="Filter teams" value="' + esc(P.filter) + '">' : '') + '<div class="gp-list">' + list + '</div>';
+    }
+    box.addEventListener('keydown', function(e){ if (e.key === 'Enter' && e.target.classList.contains('gp-filter')) e.preventDefault(); });
+    box.addEventListener('input', function(e){ if (e.target.classList.contains('gp-filter')){ e.stopPropagation(); P.filter = e.target.value; renderList(); } });
+    box.addEventListener('click', function(e){
+      var t = e.target.closest('[data-gid],[data-gp],[data-qp]'); if (!t) return;
+      if (t.dataset.gid){
+        var g = (P.games || []).find(function(x){ return x.id === t.dataset.gid && x.league === t.dataset.lg; }); if (!g) return;
+        P.setGame(storedGame(g), g); fill(pickInput, matchupText(g));
+      } else if (t.dataset.qp){
+        fill(pickInput, t.dataset.qp);
+        if (t.dataset.ml){
+          var ml = Number(t.dataset.ml);
+          fill(oddsInput, formatOdds(americanToDecimal(ml), style));
+          P.auto = { provider: (P.odds && P.odds.provider) || 'ESPN', side: t.dataset.side, american: ml, asOf: (P.odds && P.odds.asOf) || new Date().toISOString(), eventId: P.game && P.game.id };
+        }
+      }
+      else if (t.dataset.gp === 'change'){ P.open = true; P.refresh(); }
+      else if (t.dataset.gp === 'close'){ P.open = false; P.refresh(); }
+      else if (t.dataset.gp === 'clear'){ P.reset(); }
+      else if (t.dataset.gp === 'retry'){ P.refresh(); }
+    });
+    return P;
+  }
+
+  /* ---------- Log sheet ---------- */
+  $('iSport').innerHTML = sportOpts;
+  var gpSingle = makePicker($('gpSingle'), function(){ return $('iSport').value; }, $('iDesc'), $('iOdds'), function(){ return $('iDate').value; });
+  function setSportSelect(sel, otherBox, otherInput, value){
+    var match = SPORTS.find(function(s){ return s.toLowerCase() === String(value || '').toLowerCase(); });
+    if (!value){ sel.value = ''; otherBox.hidden = true; }
+    else if (match){ sel.value = match; otherBox.hidden = true; }
+    else { sel.value = '__other'; otherBox.hidden = false; otherInput.value = value; }
+  }
+  function sportOf(sel, otherInput){ return sel.value === '__other' ? otherInput.value.trim() : sel.value; }
+  $('iSport').addEventListener('change', function(){ $('otherBox').hidden = this.value !== '__other'; $('eSport').textContent = ''; this.classList.remove('bad'); gpSingle.reset(); });
+  /* Top date: single -> bet date (resets the single's game). Parlay -> 'Placed' date; legs still on the old placed date with no linked game follow it. */
+  var lastPlaced = '';
+  $('iDate').addEventListener('focus', function(){ lastPlaced = this.value; });
+  $('iDate').addEventListener('change', function(){
+    var nv = this.value;
+    if (ftype === 'single') gpSingle.reset();
+    else document.querySelectorAll('#legs .leg').forEach(function(el){
+      var di = el.querySelector('.l-date'), gp = el.querySelector('.gp')._gp;
+      if ((!di.value || di.value === lastPlaced) && !gp.getGame()){ di.value = nv; gp.refresh(); }
+    });
+    lastPlaced = nv;
+  });
+  function allPickers(){ return [gpSingle].concat(Array.prototype.map.call(document.querySelectorAll('#legs .gp'), function(b){ return b._gp; })); }
+
+  /* odds inputs remember the exact decimal they were filled with, so 1.57 shown as -175 is saved as 1.57 (not 1.5714) unless edited */
+  function setOdds(input, dec){ input.value = dec ? formatOdds(dec, style) : ''; if (dec) input.dataset.exact = String(dec); else delete input.dataset.exact; }
+  function readOdds(input){
+    var r = parseOdds(input.value, style), ex = Number(input.dataset.exact);
+    if (r.ok && ex && formatOdds(ex, style) === input.value.trim()) r.decimal = ex;
+    return r;
+  }
+  function legSeg(r){ return '<div class="seg sm lr">' + ['pending','win','loss','push'].map(function(x){ return '<button type="button" data-lr="' + x + '" class="' + (x === r ? 'on' : '') + '">' + x.charAt(0).toUpperCase() + x.slice(1) + '</button>'; }).join('') + '</div>'; }
+  function addLeg(leg){
+    var el = document.createElement('div'); el.className = 'leg'; el.dataset.legid = leg && leg.id || ''; el.dataset.result = leg && leg.result || 'pending';
+    el.innerHTML = '<div class="leg-head"><span class="leg-n"></span><button type="button" class="leg-x" aria-label="Remove leg">\u00d7</button></div>' +
+      '<div class="two"><div class="f"><label>Game date</label><input type="date" class="l-date"></div>' +
+      '<div class="f"><label>Sport</label><select class="l-sport">' + sportOpts + '</select></div></div>' +
+      '<div class="f l-otherbox" hidden><input class="l-other" maxlength="30" placeholder="Sport name"></div>' +
+      '<div class="gp"></div>' +
+      '<div class="two"><div class="f" style="flex:1.6"><label>Pick</label><input class="l-desc" maxlength="120" placeholder="Bills ML"></div>' +
+      '<div class="f"><label class="odds-lbl">Odds</label><input class="l-odds odds-in"></div></div>' +
+      '<div class="f"><label>Leg result</label>' + legSeg(el.dataset.result) + '</div><div class="err l-err" style="margin:-6px 0 10px"></div>';
+    if (leg && leg.matchup) el.dataset.matchup = leg.matchup;
+    if (leg && leg.time) el.dataset.time = leg.time;
+    var prevLeg = $('legs').lastElementChild;
+    $('legs').appendChild(el);
+    var sel = el.querySelector('.l-sport'), dIn = el.querySelector('.l-date');
+    dIn.value = leg && leg.date ? leg.date : (leg && leg.parentDate) || (prevLeg && prevLeg.querySelector('.l-date').value) || $('iDate').value || today();
+    var gp = makePicker(el.querySelector('.gp'), function(){ return sel.value; }, el.querySelector('.l-desc'), el.querySelector('.l-odds'), function(){ return dIn.value; });
+    if (leg){
+      setSportSelect(sel, el.querySelector('.l-otherbox'), el.querySelector('.l-other'), leg.sport);
+      el.querySelector('.l-desc').value = leg.desc || '';
+      setOdds(el.querySelector('.l-odds'), leg.odds);
+    }
+    if (leg && leg.game) gp.setGame(leg.game); else gp.refresh();
+    numberLegs(); oddsField();
+    return el;
+  }
+  function numberLegs(){ var ls = $('legs').querySelectorAll('.leg'); ls.forEach(function(l, i){ l.querySelector('.leg-n').textContent = 'Leg ' + (i + 1); l.querySelector('.leg-x').style.visibility = ls.length > 2 ? '' : 'hidden'; }); }
+  $('addLeg').onclick = function(){ addLeg(); updToWin(); };
+  $('legs').addEventListener('click', function(e){
+    var x = e.target.closest('.leg-x'), lr = e.target.closest('[data-lr]');
+    if (x){ if ($('legs').children.length <= 2) return toast('A parlay needs 2+ legs'); x.closest('.leg').remove(); numberLegs(); updToWin(); }
+    if (lr){ var leg = lr.closest('.leg'); leg.dataset.result = lr.dataset.lr; leg.querySelectorAll('[data-lr]').forEach(function(b){ b.classList.toggle('on', b === lr); }); updToWin(); }
+  });
+  $('legs').addEventListener('change', function(e){
+    if (e.target.classList.contains('l-date')){ e.target.closest('.leg').querySelector('.gp')._gp.reset(); return; }
+    if (e.target.classList.contains('l-sport')){ var leg = e.target.closest('.leg'); leg.querySelector('.l-otherbox').hidden = e.target.value !== '__other'; e.target.classList.remove('bad'); leg.querySelector('.gp')._gp.reset(); }
+  });
+  $('legs').addEventListener('input', function(e){ e.target.classList.remove('bad'); var er = e.target.closest('.leg') && e.target.closest('.leg').querySelector('.l-err'); if (er) er.textContent = ''; updToWin(); });
+  function readLegs(){
+    return Array.prototype.map.call($('legs').querySelectorAll('.leg'), function(el){
+      var sel = el.querySelector('.l-sport');
+      return { el:el, id:el.dataset.legid, result:el.dataset.result, date:el.querySelector('.l-date').value, sport:sportOf(sel, el.querySelector('.l-other')), desc:el.querySelector('.l-desc').value.trim(),
+        odds:readOdds(el.querySelector('.l-odds')), gp:el.querySelector('.gp')._gp, matchup:el.dataset.matchup || '', time:el.dataset.time || '' };
+    });
+  }
+
+  function setType(t){
+    ftype = t;
+    document.querySelectorAll('#typeSeg button').forEach(function(b){ b.classList.toggle('on', b.dataset.t === t); });
+    $('singleBox').hidden = t !== 'single'; $('parlayBox').hidden = t !== 'parlay';
+    document.querySelector('label[for=iDate]').textContent = t === 'parlay' ? 'Placed' : 'Date';
+    if (t === 'parlay' && !$('legs').children.length){ addLeg(); addLeg(); }
+    $('resSeg').querySelector('[data-r=pending]').textContent = t === 'parlay' ? 'Auto' : 'Pending';
+    setResult(result); updToWin();
+  }
+  document.querySelectorAll('#typeSeg button').forEach(function(b){ b.onclick = function(){ if (!b.disabled) setType(b.dataset.t); }; });
+  /* result: single -> pending/win/loss/push; parlay -> 'pending' means Auto (from legs), others are a manual override */
+  function setResult(r){ result = r; document.querySelectorAll('#resSeg button').forEach(function(b){ b.classList.toggle('on', b.dataset.r === r); }); $('coBox').hidden = r !== 'cashout'; updToWin(); }
+  function parseCash(v){ v = String(v || '').replace(/[$,\s]/g, ''); if (!/^\d+(\.\d{1,2})?$/.test(v)) return { ok:false, error:'Enter the amount you got back, like 80.00' }; return { ok:true, value: round2(Number(v)) }; }
+  $('iCash').addEventListener('input', function(){ this.classList.remove('bad'); $('eCash').textContent = ''; updToWin(); });
+  document.querySelectorAll('#resSeg button').forEach(function(b){ b.onclick = function(){ setResult(b.dataset.r); }; });
+  function oddsField(){
+    document.querySelectorAll('.odds-lbl').forEach(function(l){ l.textContent = style === 'american' ? 'Odds (American)' : 'Odds (decimal)'; });
+    document.querySelectorAll('.odds-in').forEach(function(i){ i.placeholder = style === 'american' ? '-110' : '1.91'; i.setAttribute('inputmode', style === 'american' ? 'text' : 'decimal'); });
+  }
+  function clearErr(){ ['eSport','eDesc','eStake','eOdds'].forEach(function(id){ $(id).textContent = ''; }); document.querySelectorAll('.bad').forEach(function(e){ e.classList.remove('bad'); }); }
+  var pendingSlip = null, singleExtra = {};
+  function openLog(id){
+    var b = id ? bets.find(function(x){ return x.id === id; }) : null;
+    pendingSlip = null; singleExtra = b && b.type !== 'parlay' ? { matchup: b.matchup, time: b.time } : {};
+    editing = b ? b.id : null; clearErr();
+    $('logTitle').textContent = b ? (b.type === 'parlay' ? 'Edit parlay' : 'Edit bet') : 'Log a bet';
+    $('iDate').value = b ? b.date : today();
+    lastPlaced = $('iDate').value;
+    $('iStake').value = b ? b.stake.toFixed(2) : '';
+    $('legs').innerHTML = '';
+    var isP = b && b.type === 'parlay';
+    setSportSelect($('iSport'), $('otherBox'), $('iOther'), b && !isP ? b.sport : '');
+    $('iDesc').value = b && !isP ? b.desc : ''; setOdds($('iOdds'), b && !isP ? b.odds : null);
+    if (isP) b.legs.forEach(function(l){ addLeg(Object.assign({}, l, { date: legDate(l, b) })); });
+    result = b ? (isP ? (b.override || 'pending') : b.result) : 'pending';
+    $('iCash').value = b && b.cashoutAmount != null ? Number(b.cashoutAmount).toFixed(2) : ''; $('eCash').textContent = ''; $('iCash').classList.remove('bad');
+    document.querySelectorAll('#typeSeg button').forEach(function(x){ x.disabled = !!b; });
+    setType(isP ? 'parlay' : 'single');
+    setResult(result);
+    if (b && !isP && b.game) gpSingle.setGame(b.game); else gpSingle.reset();
+    $('delBtn').style.display = b ? '' : 'none';
+    oddsField(); openSheet('logSheet');
+  }
+  function coLine(){
+    if (result !== 'cashout') return false;
+    var s = parseStake($('iStake').value), c = parseCash($('iCash').value);
+    $('toWin').innerHTML = s.ok && c.ok ? 'Cashed out for <b>' + money(c.value) + '</b> \u00b7 Profit <b class="' + tone(c.value - s.value) + '">' + money(round2(c.value - s.value), true) + '</b>' : 'Enter the cash-out amount';
+    return true;
+  }
+  function updToWin(){
+    var s = parseStake($('iStake').value);
+    if (ftype === 'parlay'){
+      var legs = readLegs(), ok = legs.every(function(l){ return l.odds.ok; });
+      var auto = parlayAutoResult(legs.map(function(l){ return { result:l.result, odds: l.odds.ok ? l.odds.decimal : 2 }; }));
+      $('resHint').hidden = false; $('resHint').textContent = result === 'pending' ? 'Auto from legs: ' + auto : result === 'cashout' ? 'Cashed out \u2014 legs keep their own results' : 'Manual override (legs say ' + auto + ')';
+      if (coLine()) return;
+      if (!ok){ $('toWin').textContent = legs.length + ' legs \u00b7 add odds to every leg'; return; }
+      var comb = legs.reduce(function(p, l){ return p * l.odds.decimal; }, 1);
+      var win = legs.reduce(function(p, l){ return (l.result === 'push' || l.result === 'loss') ? p : p * l.odds.decimal; }, 1);
+      $('toWin').innerHTML = 'Combined <b>' + formatOdds(comb, style) + '</b>' + (s.ok ? ' \u00b7 To win <b>' + money(round2(s.value * (win - 1))) + '</b> \u00b7 Returns <b>' + money(s.value + round2(s.value * (win - 1))) + '</b>' : '');
+      return;
+    }
+    $('resHint').hidden = true;
+    if (coLine()) return;
+    var o = readOdds($('iOdds'));
+    $('toWin').innerHTML = s.ok && o.ok ? 'To win <b>' + money(round2(s.value * (o.decimal - 1))) + '</b> \u00b7 Returns <b>' + money(s.value + round2(s.value * (o.decimal - 1))) + '</b>' : '';
+  }
+  var ERR = { iStake:'eStake', iOdds:'eOdds', iDesc:'eDesc', iOther:'eSport' };
+  Object.keys(ERR).forEach(function(id){ $(id).addEventListener('input', function(){ $(id).classList.remove('bad'); $(ERR[id]).textContent = ''; updToWin(); }); });
+  function fail(input, errId, msg){ $(errId).textContent = msg; $(input).classList.add('bad'); }
+  /* bet created from a scan: keep the slip text, and store a compressed copy of the screenshot in IndexedDB */
+  function compressImage(blob){
+    return new Promise(function(res, rej){
+      var url = URL.createObjectURL(blob), img = new Image();
+      img.onload = function(){
+        var sc = Math.min(1, 1200 / img.naturalHeight, 1200 / img.naturalWidth), c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.naturalWidth * sc)); c.height = Math.max(1, Math.round(img.naturalHeight * sc));
+        var x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        c.toBlob(function(b){
+          if (b && b.type === 'image/webp') return res(b);
+          c.toBlob(function(j){ j ? res(j) : rej(new Error('encode')); }, 'image/jpeg', 0.7);   /* Safari: no WebP encoder */
+        }, 'image/webp', 0.7);
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error('bad image')); };
+      img.src = url;
+    });
+  }
+  function attachSlip(bet){
+    var ps = pendingSlip; pendingSlip = null; if (!ps) return;
+    if (ps.text) bet.scanText = ps.text.slice(0, 6000);
+    if (!ps.blob) return;
+    var key = 'slip-' + bet.id; bet.slipImageId = key;
+    compressImage(ps.blob).then(function(small){ return Store.putImage(key, small); }).catch(function(){
+      delete bet.slipImageId; persist(); toast('Saved \u2014 screenshot couldn\u2019t be stored in this browser');
+    });
+  }
+  $('logForm').onsubmit = function(e){
+    e.preventDefault(); clearErr();
+    var s = parseStake($('iStake').value), ok = true, date = $('iDate').value || today();
+    if (!s.ok){ fail('iStake','eStake', s.error); ok = false; }
+    var old = editing ? bets.find(function(x){ return x.id === editing; }) : null;
+    var cash = result === 'cashout' ? parseCash($('iCash').value) : null;
+    if (cash && !cash.ok){ fail('iCash', 'eCash', cash.error); ok = false; }
+    function applyCash(o){ if (cash && cash.ok) o.cashoutAmount = cash.value; else delete o.cashoutAmount; return o; }
+    if (ftype === 'parlay'){
+      var legs = readLegs();
+      legs.forEach(function(l){
+        var msg = !l.sport ? 'Choose a sport' : !l.desc ? 'Add the pick' : !l.odds.ok ? l.odds.error : '';
+        l.el.querySelector('.l-err').textContent = msg;
+        if (!l.sport) l.el.querySelector(l.el.querySelector('.l-sport').value === '__other' ? '.l-other' : '.l-sport').classList.add('bad');
+        if (!l.desc) l.el.querySelector('.l-desc').classList.add('bad');
+        if (!l.odds.ok) l.el.querySelector('.l-odds').classList.add('bad');
+        if (msg) ok = false;
+      });
+      if (!ok) return;
+      var newLegs = legs.map(function(l){
+        var prev = old && old.legs ? old.legs.find(function(x){ return x.id === l.id; }) : null;
+        var nl = { id: l.id || uid(), date: /^\d{4}-\d{2}-\d{2}$/.test(l.date) ? l.date : date, sport: l.sport, desc: l.desc, odds: l.odds.decimal, result: l.result };
+        var g = l.gp.getGame(); if (g) nl.game = g;
+        if (l.matchup) nl.matchup = l.matchup; if (l.time) nl.time = l.time;
+        var src = l.gp.getOddsSource(l.odds.decimal) || (prev && prev.oddsSource && Math.abs(prev.odds - l.odds.decimal) < 1e-9 ? prev.oddsSource : null);
+        if (src) nl.oddsSource = src;
+        return nl;
+      });
+      var pdata = { type:'parlay', date:date, stake:s.value, legs:newLegs, override: result === 'pending' ? null : result };
+      if (old){ Object.assign(old, pdata); applyCash(old); syncParlay(old); toast('Saved'); }
+      else { pdata.id = uid(); pdata.created = Date.now(); applyCash(pdata); attachSlip(pdata); bets.push(syncParlay(pdata)); toast('Logged'); }
+      persist(); closeSheets(); return;
+    }
+    var sport = sportOf($('iSport'), $('iOther')), desc = $('iDesc').value.trim(), o = readOdds($('iOdds'));
+    if (!sport){ fail($('iSport').value === '__other' ? 'iOther' : 'iSport', 'eSport', 'Choose a sport'); ok = false; }
+    if (!desc){ fail('iDesc','eDesc','Describe the bet'); ok = false; }
+    if (!o.ok){ fail('iOdds','eOdds', o.error); ok = false; }
+    if (!ok) return;
+    var data = { date:date, sport:sport, desc:desc, stake:s.value, odds:o.decimal, result:result };
+    var game = gpSingle.getGame(), src1 = gpSingle.getOddsSource(o.decimal);
+    if (old){
+      var keep = old.oddsSource && Math.abs(old.odds - o.decimal) < 1e-9;
+      Object.assign(old, data); applyCash(old);
+      if (game) old.game = game; else delete old.game;
+      if (game || !singleExtra.matchup) delete old.matchup;
+      if (src1) old.oddsSource = src1; else if (!keep) delete old.oddsSource;
+      toast('Saved');
+    } else {
+      data.id = uid(); data.created = Date.now(); if (game) data.game = game; if (src1) data.oddsSource = src1;
+      applyCash(data);
+      if (singleExtra.matchup) data.matchup = singleExtra.matchup; if (singleExtra.time) data.time = singleExtra.time;
+      attachSlip(data); bets.push(data); toast('Logged');
+    }
+    persist(); closeSheets();
+  };
+  $('delBtn').onclick = function(){
+    if (!editing || !confirm('Delete this bet?')) return;
+    Store.deleteBet(editing); bets = Store.getBets(); persist(); closeSheets(); toast('Deleted');
+  };
+
+
+  /* ---------- Scan slip (paste / screenshot -> parsed bet; never auto-saves) ---------- */
+  var TESS_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+  var TESS_LANG = 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int';
+  var tessLoad = null, tessWorker = null, ocrProgress = null, parsed = null, scanFrom = 'home';
+  function loadTesseract(){
+    if (window.Tesseract) return Promise.resolve(window.Tesseract);
+    if (!tessLoad) tessLoad = new Promise(function(res, rej){
+      var s = document.createElement('script'); s.src = TESS_URL; s.async = true; s.crossOrigin = 'anonymous';
+      s.onload = function(){ window.Tesseract ? res(window.Tesseract) : rej(new Error('missing')); };
+      s.onerror = function(){ s.remove(); tessLoad = null; rej(new Error('load failed')); };
+      document.head.appendChild(s);
+    });
+    return tessLoad;
+  }
+  function getWorker(){
+    if (!tessWorker){
+      tessWorker = loadTesseract().then(function(T){
+        return T.createWorker('eng', 1, { langPath: TESS_LANG, logger: function(m){ if (ocrProgress) ocrProgress(m); } });
+      }).then(function(w){ return w.setParameters({ tessedit_pageseg_mode: '6', preserve_interword_spaces: '1' }).then(function(){ return w; }); });
+      tessWorker.catch(function(){ tessWorker = null; });
+    }
+    return tessWorker;
+  }
+  /* scale up, grayscale, invert dark-mode screenshots, boost contrast */
+  function prepImage(blob){
+    return new Promise(function(res, rej){
+      var url = URL.createObjectURL(blob), img = new Image();
+      img.onload = function(){
+        var w = img.naturalWidth, h = img.naturalHeight, sc = Math.max(1, Math.min(3, 1800 / w));
+        if (w * h * sc * sc > 14e6) sc = Math.sqrt(14e6 / (w * h));
+        var c = document.createElement('canvas'); c.width = Math.round(w * sc); c.height = Math.round(h * sc);
+        var x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, c.width, c.height);
+        var d = x.getImageData(0, 0, c.width, c.height), p = d.data, n = p.length / 4, sum = 0, i;
+        for (i = 0; i < p.length; i += 4){ var g = 0.299 * p[i] + 0.587 * p[i+1] + 0.114 * p[i+2]; p[i] = g; sum += g; }
+        var inv = sum / n < 128;
+        for (i = 0; i < p.length; i += 4){ var v = inv ? 255 - p[i] : p[i]; v = (v - 128) * 1.5 + 128; v = v < 0 ? 0 : v > 255 ? 255 : v; p[i] = p[i+1] = p[i+2] = v; p[i+3] = 255; }
+        x.putImageData(d, 0, 0); URL.revokeObjectURL(url); res(c);
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error('bad image')); };
+      img.src = url;
+    });
+  }
+  function scanStatus(t){ $('scanStatus').textContent = t || ''; }
+  var scanBlob = null;
+  function readImage(blob){
+    scanBlob = blob;
+    var thumb = URL.createObjectURL(blob);
+    $('pasteZone').innerHTML = '<img alt="Slip screenshot" src="' + thumb + '">';
+    $('fillBtn').disabled = true; $('scanPreview').innerHTML = '';
+    scanStatus('Reading screenshot\u2026');
+    ocrProgress = function(m){ if (m.status === 'recognizing text') scanStatus('Reading screenshot\u2026 ' + Math.round((m.progress || 0) * 100) + '%'); else if (/load/.test(m.status || '')) scanStatus('Getting the text reader ready\u2026'); };
+    var timeout = new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('timeout')); }, 90000); });
+    Promise.race([Promise.all([getWorker(), prepImage(blob)]).then(function(r){ return r[0].recognize(r[1]); }), timeout]).then(function(r){
+      var text = (r && r.data && r.data.text || '').replace(/[ \t]{3,}/g, '   ').replace(/\n{3,}/g, '\n\n').trim();
+      $('slipText').value = text; runParse();
+      if (!text) scanStatus('No text found in that image. Paste the text instead.');
+    }, function(){
+      scanStatus('Couldn\u2019t read the image \u2014 check your connection or paste the text instead.');
+    });
+  }
+  function confLabel(c){ return c >= 0.8 ? '<span class="conf hi">High</span>' : c >= 0.55 ? '<span class="conf">Medium</span>' : '<span class="conf lo">Low</span>'; }
+  function runParse(){
+    var txt = $('slipText').value;
+    parsed = txt.trim() ? parseSlip(txt, { today: today(), style: style }) : null;
+    var pv = $('scanPreview');
+    if (!parsed || !parsed.legs.length){ pv.innerHTML = parsed ? '<div class="empty">No bets found in that text.</div>' + unparsedHtml(parsed) : ''; $('fillBtn').disabled = true; if (parsed) scanStatus(''); return; }
+    var n = parsed.legs.length, bits = [];
+    bits.push('<b>' + (n > 1 ? n + '-leg parlay' : 'Single') + '</b>');
+    if (parsed.stake != null) bits.push('Stake <b>' + money(parsed.stake) + '</b>');
+    if (parsed.toWin != null) bits.push('To win <b>' + money(parsed.toWin) + '</b>');
+    if (parsed.bonusBet) bits.push('<b>Bonus bet</b>');
+    if (parsed.cashout) bits.push('<b>Cashed out' + (parsed.cashoutAmount != null ? ' ' + money(parsed.cashoutAmount) : '') + '</b>');
+    if (parsed.totalOdds) bits.push('Slip odds <b>' + formatOdds(parsed.totalOdds, style) + '</b>');
+    else if (parsed.impliedOdds && n > 1) bits.push('Slip pays <b>' + formatOdds(parsed.impliedOdds, style) + '</b>');
+    var note = !parsed.oddsMismatch ? '' : '<br>Legs multiply to ' + formatOdds(parsed.legsOdds, style) + (parsed.totalOdds ? ' (boost or same-game pricing?)' : ' \u2014 the book rounds the odds it shows' + (parsed.bonusBet ? ', and a bonus bet\u2019s stake isn\u2019t returned' : '')) + '. The app uses the leg odds.';
+    pv.innerHTML = '<div class="scan-sum">' + bits.join(' \u00b7 ') + note + '</div><div class="list">' + parsed.legs.map(function(l){
+      var meta = [l.sport || 'Sport?', l.market, l.odds ? formatOdds(l.odds, style) : 'no odds', l.date ? shortDate(l.date) + (l.time ? ' ' + l.time : '') : null].filter(Boolean);
+      return '<div class="row"><div><div class="name">' + esc(l.desc) + '</div>' + (l.matchup ? '<div class="meta one">' + esc(l.matchup) + '</div>' : '') + '<div class="meta">' + esc(meta.join(' \u00b7 ')) + '</div></div>' + confLabel(l.confidence) + '</div>';
+    }).join('') + '</div>' + unparsedHtml(parsed);
+    $('fillBtn').disabled = false; scanStatus('Check the details, then Fill bet.');
+  }
+  function unparsedHtml(ps){ return ps && ps.unparsed.length ? '<div class="unp">Not understood: ' + ps.unparsed.map(esc).join(' \u00b7 ') + ' \u2014 edit the text above if needed.</div>' : ''; }
+  var parseT; $('slipText').addEventListener('input', function(){ clearTimeout(parseT); parseT = setTimeout(runParse, 250); });
+  function handlePaste(e){
+    if (!$('scanSheet').classList.contains('open')) return;
+    var cd = e.clipboardData || window.clipboardData; if (!cd) return;
+    var items = cd.items ? Array.prototype.slice.call(cd.items) : [], img = items.find(function(it){ return it.kind === 'file' && /^image\//.test(it.type); });
+    var file = img ? img.getAsFile() : (cd.files && cd.files[0] && /^image\//.test(cd.files[0].type) ? cd.files[0] : null);
+    if (file){ e.preventDefault(); readImage(file); return; }
+    if (e.target === $('slipText')) return;   /* normal paste into the textarea */
+    var t = cd.getData('text/plain'); if (!t) return;
+    e.preventDefault(); $('slipText').value = t; $('pasteZone').innerHTML = '<span>Text pasted \u2713</span>'; runParse();
+  }
+  document.addEventListener('paste', handlePaste);
+  $('pasteZone').addEventListener('beforeinput', function(e){ if (e.inputType !== 'insertFromPaste') e.preventDefault(); });
+  $('pasteZone').addEventListener('drop', function(e){ var f = e.dataTransfer && e.dataTransfer.files[0]; if (f && /^image\//.test(f.type)){ e.preventDefault(); readImage(f); } });
+  $('pickImg').onclick = function(){ $('imgFile').value = ''; $('imgFile').click(); };
+  $('imgFile').onchange = function(){ var f = this.files[0]; if (f) readImage(f); };
+  function openScan(from){
+    scanFrom = from; parsed = null; scanBlob = null; $('slipText').value = ''; $('scanPreview').innerHTML = ''; $('fillBtn').disabled = true; scanStatus('');
+    $('pasteZone').innerHTML = '<span id="pasteHint">Paste a screenshot or slip text here<br><span style="font-size:12px">\u2318V / Ctrl+V, or long-press \u2192 Paste</span></span>';
+    openSheet('scanSheet');
+  }
+  $('scanHome').onclick = function(){ openScan('home'); };
+  $('scanBtn').onclick = function(){ openScan('log'); };
+  $('scanBack').onclick = function(){ if (scanFrom === 'log') openSheet('logSheet'); else closeSheets(); };
+  $('fillBtn').onclick = function(){ if (parsed && parsed.legs.length) fillFromSlip(parsed); };
+  function fillFromSlip(ps){
+    openLog(null);
+    pendingSlip = { blob: scanBlob, text: $('slipText').value.trim() };
+    $('iDate').value = ps.placed || today(); lastPlaced = $('iDate').value;
+    if (ps.stake != null) $('iStake').value = ps.stake.toFixed(2);
+    var els = [];
+    if (ps.legs.length > 1){
+      setType('parlay'); $('legs').innerHTML = '';
+      ps.legs.forEach(function(l){ els.push(addLeg({ date: l.date || $('iDate').value, sport: l.sport || 'Other', desc: l.desc, odds: l.odds || null, result: 'pending', matchup: l.matchup || undefined, time: l.time || undefined })); });
+    } else {
+      var l = ps.legs[0];
+      setSportSelect($('iSport'), $('otherBox'), $('iOther'), l.sport || 'Other');
+      $('iDesc').value = l.desc; setOdds($('iOdds'), l.odds);
+      gpSingle.reset(); els.push(null); singleExtra = { matchup: l.matchup, time: l.time };
+    }
+    if (ps.cashout){ setResult('cashout'); if (ps.cashoutAmount != null) $('iCash').value = ps.cashoutAmount.toFixed(2); }
+    updToWin();
+    var tries = ps.legs.map(function(l, i){ return linkLeg(l, els[i]); });
+    Promise.all(tries).then(function(r){
+      var linked = r.filter(Boolean).length, cand = ps.legs.filter(function(l){ return l.sportCandidates.some(function(s){ return GAME_FEEDS[s]; }) && (l.date || ps.placed); }).length;
+      toast(cand ? 'Filled \u00b7 linked ' + linked + ' of ' + ps.legs.length + ' to games' : 'Filled \u2014 review and Save');
+      updToWin();
+    });
+  }
+  /* find the leg's ESPN game on its date; slip odds always win, live odds only fill a blank */
+  function linkLeg(l, el){
+    var date = l.date || $('iDate').value, sports = l.sportCandidates.filter(function(s){ return GAME_FEEDS[s]; });
+    if (!date || !sports.length) return Promise.resolve(false);
+    var sel = el ? el.querySelector('.l-sport') : $('iSport'), gp = el ? el.querySelector('.gp')._gp : gpSingle, oddsIn = el ? el.querySelector('.l-odds') : $('iOdds');
+    /* US evening games sit on the previous day's scoreboard for non-US slips (and vice versa): try the leg date, then +-1 day */
+    var tries = []; sports.forEach(function(s){ [0, -1, 1].forEach(function(k){ tries.push([s, k]); }); });
+    var i = 0, dIn = el ? el.querySelector('.l-date') : null;
+    function next(){
+      if (i >= tries.length) return Promise.resolve(false);
+      var sport = tries[i][0], k = tries[i++][1], d = fromYmd(date); d.setDate(d.getDate() + k); var dd = ymd(d);
+      if (k && !el) return next();   /* a single bet's date is the placed date: only link same-day */
+      return loadGames(sport, dd).then(function(games){
+        var m = matchSlipGame(games, l);
+        if (!m || (k && !(l.matchup && m.score === 2))) return next();   /* adjacent days need both teams */
+        if (k && dIn) dIn.value = dd;
+        if (sel.value !== sport){ sel.value = sport; (el ? el.querySelector('.l-otherbox') : $('otherBox')).hidden = true; }
+        gp.setGame(storedGame(m.game), m.game);
+        if (!l.odds && m.side && isMoneylineLeg(l) && m.game.odds && m.game.odds[m.side] != null) gp.fillOdds(m.side, m.game.odds[m.side]);
+        return true;
+      }, function(){ return next(); });
+    }
+    return next();
+  }
+
+  /* ---------- Odds sheet ---------- */
+  function renderFmt(){ document.querySelectorAll('#fmtSeg button').forEach(function(b){ b.classList.toggle('on', b.dataset.f === style); }); }
+  document.querySelectorAll('#fmtSeg button').forEach(function(b){ b.onclick = function(){ style = b.dataset.f; persist(); renderFmt(); oddsField(); render(); }; });
+  function blobToDataUrl(b){ return new Promise(function(res, rej){ var r = new FileReader(); r.onload = function(){ res(r.result); }; r.onerror = rej; r.readAsDataURL(b); }); }
+  function dataUrlToBlob(u){ var m = /^data:(image\/(?:jpeg|webp|png));base64,([A-Za-z0-9+\/=]+)$/.exec(u || ''); if (!m) return null; var bin = atob(m[2]), a = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], { type: m[1] }); }
+  /* backup JSON: bets + every scanned screenshot as base64 (images: { slipImageId: dataURL }) */
+  function exportData(){
+    var ids = bets.map(function(b){ return b.slipImageId; }).filter(Boolean), images = {};
+    return Promise.all(ids.map(function(id){ return Store.getImage(id).then(function(bl){ return bl && blobToDataUrl(bl).then(function(u){ images[id] = u; }); }).catch(function(){}); }))
+      .then(function(){ return { app:'nightline', version:4, exportedAt:new Date().toISOString(), oddsStyle:style, bets:bets, transactions:txns, images:images }; });
+  }
+  $('expBtn').onclick = function(){
+    exportData().then(function(d){
+      var json = JSON.stringify(d, null, 2), blob = new Blob([json], { type:'application/json' }), n = Object.keys(d.images).length;
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'nightline-' + today() + '.json';
+      document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      toast('Exported' + (n ? ' \u00b7 ' + n + ' screenshot' + (n > 1 ? 's' : '') + ' \u00b7 ' + (blob.size > 1048576 ? (blob.size / 1048576).toFixed(1) + ' MB' : Math.round(blob.size / 1024) + ' KB') : ''));
+    });
+  };
+  $('impBtn').onclick = function(){ $('impFile').value = ''; $('impFile').click(); };
+  $('impFile').onchange = function(){
+    var f = this.files[0]; if (!f) return; var rd = new FileReader();
+    rd.onload = function(){
+      try {
+        var d = JSON.parse(rd.result), list = Array.isArray(d) ? d : d && d.bets;
+        if (!Array.isArray(list)) throw new Error('No bets in file');
+        var R = ['pending','win','loss','push','cashout'];
+        var str = function(v, n, def){ v = String(v == null ? '' : v).slice(0, n); return v || def; };
+        var cleanGame = function(g){ if (!g || typeof g !== 'object' || !g.id) return undefined; var o = {}; ['id','league','start','away','home','awayShort','homeShort'].forEach(function(k){ if (g[k] != null) o[k] = String(g[k]).slice(0, 120); }); return o; };
+        var cleanX = function(o, src){ if (src.matchup) o.matchup = str(src.matchup, 120, ''); if (src.time && /^\d{1,2}:\d{2} [AP]M$/.test(src.time)) o.time = src.time; return o; };
+        var cleanSrc = function(s){ if (!s || typeof s !== 'object' || !(Math.abs(Number(s.american)) >= 100)) return undefined; return { provider:str(s.provider, 40, ''), side:str(s.side, 8, ''), american:Math.round(Number(s.american)), asOf:str(s.asOf, 40, ''), eventId:str(s.eventId, 40, '') }; };
+        var clean = list.filter(function(b){
+          if (!b || !/^\d{4}-\d{2}-\d{2}$/.test(b.date) || !(Number(b.stake) > 0)) return false;
+          if (b.type === 'parlay') return Array.isArray(b.legs) && b.legs.length >= 2 && b.legs.every(function(l){ return l && Number(l.odds) >= 1.01; });
+          return Number(b.odds) >= 1.01;
+        }).map(function(b){
+          if (b.type === 'parlay') return syncParlay({ id:str(b.id, 40, uid()), type:'parlay', date:b.date, stake:round2(Number(b.stake)), created:Number(b.created) || Date.now(),
+            override: ['win','loss','push','cashout'].indexOf(b.override) >= 0 ? b.override : null,
+            legs: b.legs.map(function(l){ return cleanX({ id:str(l.id, 40, uid()), date: /^\d{4}-\d{2}-\d{2}$/.test(l.date) ? l.date : undefined, sport:str(l.sport, 30, 'Other'), desc:str(l.desc, 120, 'Leg'), odds:Number(l.odds), result: R.indexOf(l.result) >= 0 ? l.result : 'pending', game:cleanGame(l.game), oddsSource:cleanSrc(l.oddsSource) }, l); }) });
+          return cleanX({ id:str(b.id, 40, uid()), date:b.date, sport:str(b.sport, 30, 'Other'), desc:str(b.desc, 120, 'Bet'), stake:round2(Number(b.stake)), odds:Number(b.odds),
+            result: R.indexOf(b.result) >= 0 ? b.result : 'pending', created:Number(b.created) || Date.now(), game:cleanGame(b.game), oddsSource:cleanSrc(b.oddsSource) }, b);
+        }).map(function(o, i){ return o; });
+        /* scan extras: slip text + screenshot reference */
+        var src = list.filter(function(b){ return b && /^\d{4}-\d{2}-\d{2}$/.test(b.date) && Number(b.stake) > 0 && (b.type === 'parlay' ? Array.isArray(b.legs) && b.legs.length >= 2 && b.legs.every(function(l){ return l && Number(l.odds) >= 1.01; }) : Number(b.odds) >= 1.01); });
+        var imgs = d && d.images && typeof d.images === 'object' ? d.images : {}, toPut = [];
+        clean.forEach(function(o, i){
+          var b = src[i];
+          if (typeof b.scanText === 'string' && b.scanText) o.scanText = b.scanText.slice(0, 6000);
+          if (effectiveResult(o) === 'cashout') o.cashoutAmount = Number(b.cashoutAmount) >= 0 ? round2(Number(b.cashoutAmount)) : 0;
+          if (b.bonusBet === true) o.bonusBet = true;
+          if (typeof b.slipImageId === 'string' && /^[\w\-]{1,60}$/.test(b.slipImageId)){
+            o.slipImageId = b.slipImageId;
+            var bl = typeof imgs[b.slipImageId] === 'string' && imgs[b.slipImageId].length < 8e6 ? dataUrlToBlob(imgs[b.slipImageId]) : null;
+            if (bl) toPut.push([o.slipImageId, bl]);
+          }
+        });
+        /* deposits/withdrawals (backups from v4 on); older files leave the current ones untouched */
+        var hasTx = d && Array.isArray(d.transactions), seenTx = {};
+        var ctx = hasTx ? d.transactions.filter(function(t){ return t && (t.type === 'deposit' || t.type === 'withdrawal') && Number(t.amount) > 0 && /^\d{4}-\d{2}-\d{2}$/.test(t.date); }).map(function(t){
+          var id = str(t.id, 40, ''); if (!id || seenTx[id]) id = 't' + uid(); seenTx[id] = 1;   /* every entry kept separately */
+          var o = { id:id, type:t.type, amount:round2(Number(t.amount)), date:t.date, created:Number(t.created) || 0 }, nt = str(t.note, 80, ''); if (nt) o.note = nt; return o;
+        }) : null;
+        if (!confirm('Replace your ' + bets.length + ' bet(s) with ' + clean.length + ' from this file?' + (hasTx ? ' Deposits/withdrawals: ' + txns.length + ' \u2192 ' + ctx.length + '.' : ''))) return;
+        bets = JSON.parse(JSON.stringify(clean)); if (d.oddsStyle === 'decimal' || d.oddsStyle === 'american') style = d.oddsStyle;
+        if (hasTx){ Store.saveTxns(ctx); txns = Store.getTxns(); }
+        persist(); renderFmt(); oddsField(); render(); toast('Imported ' + clean.length + (hasTx && ctx.length ? ' \u00b7 ' + ctx.length + ' cash entr' + (ctx.length > 1 ? 'ies' : 'y') : '') + (toPut.length ? ' \u00b7 ' + toPut.length + ' screenshot' + (toPut.length > 1 ? 's' : '') : ''));
+        /* restore screenshots, drop ones no imported bet references */
+        var keep = {}; bets.forEach(function(b){ if (b.slipImageId) keep[b.slipImageId] = 1; });
+        Promise.all(toPut.map(function(x){ return Store.putImage(x[0], x[1]); }))
+          .then(function(){ return Store.imageIds(); })
+          .then(function(ids){ return Promise.all(ids.filter(function(k){ return !keep[k]; }).map(function(k){ return Store.deleteImage(k); })); })
+          .then(function(){ window.__importDone = true; }, function(){ window.__importDone = true; if (toPut.length) toast('Imported \u2014 screenshots couldn\u2019t be stored in this browser'); });
+      } catch(err){ alert('Couldn\u2019t import: ' + err.message); }
+    };
+    rd.readAsText(f);
+  };
+  $('clrBtn').onclick = function(){
+    if (!bets.length) return toast('Nothing to clear');
+    if (!confirm('Clear all ' + bets.length + ' bets? This can\u2019t be undone.')) return;
+    bets = []; persist(); closeSheets(); toast('Cleared');
+    Store.imageIds().then(function(ids){ ids.forEach(function(k){ Store.deleteImage(k); }); }, function(){});
+  };
+
+  /* ---------- Accounts (Supabase) ---------- */
+  var SB_URL = 'https://qmrtllypnncwbptymncp.supabase.co', SB_KEY = 'sb_publishable_ptUhfYtTa3bo9TNuta4oew_iTVX9owT';
+  var SB_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js';
+  var sbClient = null, sbLoad = null, syncErrShown = false;
+  function getSupabase(){
+    if (sbClient) return Promise.resolve(sbClient);
+    if (!sbLoad) sbLoad = new Promise(function(res, rej){
+      if (window.supabase && window.supabase.createClient) return res(window.supabase);
+      var s = document.createElement('script'); s.src = SB_JS; s.async = true; s.crossOrigin = 'anonymous';
+      s.onload = function(){ window.supabase && window.supabase.createClient ? res(window.supabase) : rej(new Error('Supabase library missing')); };
+      s.onerror = function(){ s.remove(); sbLoad = null; rej(new Error('offline')); };
+      document.head.appendChild(s);
+    }).then(function(lib){
+      sbClient = lib.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: /^https?:/.test(location.protocol) } });
+      sbClient.auth.onAuthStateChange(function(ev, session){
+        if (ev === 'PASSWORD_RECOVERY' && session && session.user) return setTimeout(function(){ startRecovery(session.user); }, 0);
+        if (ev === 'SIGNED_OUT' && Store.mode() === 'cloud' && !pwBusy){ Store.signOutCleanup(); showAuth(); }
+      });
+      return sbClient;
+    });
+    return sbLoad;
+  }
+  function reloadData(){
+    bets = Store.getBets(); bets.forEach(syncParlay); txns = Store.getTxns();
+    var s = Store.mode() === 'cloud' && Store.settings().oddsStyle;
+    if (s === 'american' || s === 'decimal'){ style = s; localStorage.setItem(KS, style); }
+    renderFmt(); oddsField(); renderAccount(); render();
+  }
+  Store.on('change', reloadData);
+  Store.on('status', function(s){
+    renderAccount();
+    if (s.state === 'error' && !syncErrShown){ syncErrShown = true; toast('Couldn\u2019t sync \u2014 saved on this device, will retry'); }
+    if (s.state === 'synced') syncErrShown = false;
+  });
+  window.addEventListener('online', function(){ if (Store.mode() === 'cloud'){ if (sbClient) Store.flush(); else connectCloud(); } });
+  setInterval(function(){ var tx = Store.txSync(); if (Store.mode() === 'cloud' && (Store.pending() || (tx.pending && tx.state !== 'missing')) && navigator.onLine !== false) Store.flush(); }, 30000);
+
+  function authMsg(t, kind){ var m = $('authMsg'); m.textContent = t || ''; m.className = 'auth-msg' + (kind ? ' ' + kind : ''); }
+  function showAuth(msg){ showSignIn(); $('authView').classList.add('open'); authMsg(msg || ''); closeSheets(true); }
+  function hideAuth(){ $('authView').classList.remove('open'); }
+  function authBusy(on){ $('aSignIn').disabled = $('aSignUp').disabled = on; $('aSignIn').style.opacity = on ? '.6' : ''; }
+  function authInput(){
+    var email = $('aEmail').value.trim(), pass = $('aPass').value;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ authMsg('Enter a valid email address.', 'err'); $('aEmail').classList.add('bad'); return null; }
+    if (pass.length < 6){ authMsg('Password must be at least 6 characters.', 'err'); $('aPass').classList.add('bad'); return null; }
+    return { email: email, password: pass };
+  }
+  ['aEmail','aPass'].forEach(function(id){ $(id).addEventListener('input', function(){ this.classList.remove('bad'); authMsg(''); }); });
+  function friendlyAuthError(e){
+    var m = String(e && (e.message || e) || '');
+    if (/email not confirmed/i.test(m)) return 'Confirm your email first \u2014 open the link we sent you, then sign in.';
+    if (/invalid login credentials/i.test(m)) return 'Wrong email or password.';
+    if (/already registered|already exists/i.test(m)) return 'That email already has an account \u2014 sign in instead.';
+    if (/rate limit|too many/i.test(m)) return 'Too many attempts \u2014 wait a minute and try again.';
+    if (/offline|failed to fetch|network|load failed/i.test(m)) return 'Couldn\u2019t reach the server \u2014 check your connection, or continue without an account.';
+    return m || 'Something went wrong \u2014 try again.';
+  }
+  function enterCloud(u){
+    hideAuth(); $('aPass').value = '';
+    Store.useCloud({ id: u.id, email: u.email }, sbClient).then(function(){ offerMove(false); });
+    toast('Signed in');
+  }
+  $('authForm').onsubmit = function(e){
+    e.preventDefault(); var c = authInput(); if (!c) return;
+    authBusy(true); authMsg('Signing in\u2026');
+    getSupabase().then(function(sb){ return sb.auth.signInWithPassword(c); }).then(function(r){
+      authBusy(false);
+      if (r.error) return authMsg(friendlyAuthError(r.error), 'err');
+      enterCloud(r.data.user);
+    }, function(err){ authBusy(false); authMsg(friendlyAuthError(err), 'err'); });
+  };
+  $('aSignUp').onclick = function(){
+    var c = authInput(); if (!c) return;
+    authBusy(true); authMsg('Creating account\u2026');
+    getSupabase().then(function(sb){
+      return sb.auth.signUp({ email: c.email, password: c.password, options: /^https?:/.test(location.protocol) ? { emailRedirectTo: location.href.split('#')[0] } : {} });
+    }).then(function(r){
+      authBusy(false);
+      if (r.error) return authMsg(friendlyAuthError(r.error), 'err');
+      if (r.data && r.data.session) return enterCloud(r.data.user);
+      authMsg('Check your email to confirm your account, then come back and sign in.', 'ok');   /* email confirmation is on */
+    }, function(err){ authBusy(false); authMsg(friendlyAuthError(err), 'err'); });
+  };
+  $('aLocal').onclick = function(){ Store.useLocal(true); hideAuth(); };
+  /* cloud mode at startup: show the cached bets immediately, then check the session and sync */
+  function connectCloud(){
+    getSupabase().then(function(sb){ return sb.auth.getSession(); }).then(function(r){
+      var s = r && r.data && r.data.session, u = Store.user();
+      if (recovering) return;
+      if (!s || !u || s.user.id !== u.id){ Store.signOutCleanup(); return showAuth('Your session ended \u2014 sign in again.'); }
+      Store.attachClient(sbClient).then(function(){ offerMove(false); });
+    }, function(){ renderAccount(true); });
+  }
+  function offerMove(force){
+    var nb = Store.localBetCount(), nt = Store.localTxnCount(), n = nb + nt, u = Store.user(); if (!n || !u) return;
+    var key = 'nightline.cloud.' + u.id + '.moveAsked';
+    if (!force && localStorage.getItem(key)) return;
+    var what = [nb ? nb + ' bet' + (nb > 1 ? 's' : '') : '', nt ? nt + ' deposit/withdrawal' + (nt > 1 ? 's' : '') : ''].filter(Boolean).join(' and ');
+    $('moveText').textContent = 'You have ' + what + ' saved on this device without an account. Move ' + (n > 1 ? 'them' : 'it') + (nb ? ' (with any slip screenshots)' : '') + ' to ' + u.email + '?';
+    $('moveBtn').textContent = nt ? 'Move ' + n + ' local item' + (n > 1 ? 's' : '') + ' to your account' : 'Move ' + n + ' local bet' + (n > 1 ? 's' : '') + ' to your account';
+    localStorage.setItem(key, '1'); openSheet('moveSheet');
+  }
+  $('moveBtn').onclick = function(){ closeSheets(true); Store.migrateLocal().then(function(){ toast('Moved to your account'); renderAccount(); }); renderAccount(); };
+  $('moveSkip').onclick = function(){ closeSheets(); };
+  function renderAccount(offline){
+    var box = $('acct'); if (!box) return;
+    if (Store.mode() !== 'cloud'){
+      box.innerHTML = '<div class="acct"><div class="av">\u2022</div><div class="who"><div class="em">Not signed in</div><div class="sy">Bets are saved on this device only</div></div></div>' +
+        '<button type="button" class="ghost" id="acctIn">Sign in or create account</button>';
+      return;
+    }
+    var u = Store.user(), st = Store.status(), n = Store.pending(), ln = Store.localBetCount() + Store.localTxnCount(), tx = Store.txSync();
+    var sy = st.state === 'error' || offline ? '<div class="sy err">' + (n ? n + ' change' + (n > 1 ? 's' : '') + ' saved here \u2014 will sync when back online' : 'Offline \u2014 showing saved copy') + '</div>'
+      : st.state === 'syncing' ? '<div class="sy">Syncing\u2026</div>' : n ? '<div class="sy">' + n + ' change' + (n > 1 ? 's' : '') + ' waiting to sync</div>' : '<div class="sy ok">Synced</div>';
+    box.innerHTML = '<div class="acct"><div class="av">' + esc((u.email || '?').charAt(0).toUpperCase()) + '</div><div class="who"><div class="em" id="acctEmail">' + esc(u.email || '') + '</div>' + sy + '</div></div>' +
+      (st.state === 'error' && st.error ? '<div class="hint" style="margin:6px 4px 0">' + esc(st.error).slice(0, 160) + '</div>' : '') +
+      (tx.state === 'missing' ? '<div class="hint" id="txNote" style="margin:6px 4px 0">Deposits &amp; withdrawals are saved on this device' + (tx.pending ? ' (' + tx.pending + ' waiting)' : '') + ' and will sync once the account database is updated.</div>'
+        : tx.pending ? '<div class="hint" id="txNote" style="margin:6px 4px 0">' + tx.pending + ' deposit/withdrawal change' + (tx.pending > 1 ? 's' : '') + ' waiting to sync</div>' : '') +
+      (ln ? '<button type="button" class="ghost" id="acctMove">Move ' + ln + ' local item' + (ln > 1 ? 's' : '') + ' to your account</button>' : '') +
+      (st.state === 'error' ? '<button type="button" class="ghost" id="acctSync">Try sync now</button>' : '') +
+      '<button type="button" class="ghost" id="acctPw">Change password</button>' +
+      '<button type="button" class="ghost danger" id="acctOut">Sign out</button>';
+  }
+  $('acct').addEventListener('click', function(e){
+    var id = e.target.id;
+    if (id === 'acctIn') showAuth();
+    if (id === 'acctPw') openPw('change');
+    if (id === 'acctMove') offerMove(true);
+    if (id === 'acctSync'){ if (sbClient) Store.flush(); else connectCloud(); }
+    if (id === 'acctOut'){
+      var n = Store.pending() + Store.txSync().pending;
+      if (n && !confirm(n + ' change' + (n > 1 ? 's haven\u2019t' : ' hasn\u2019t') + ' synced yet and will be lost. Sign out anyway?')) return;
+      var done = function(){ Store.signOutCleanup(); showAuth(); toast('Signed out'); };
+      if (sbClient) sbClient.auth.signOut().then(done, done); else done();
+    }
+  });
+
+  /* ---------- Password reset ---------- */
+  var LIVE_URL = 'https://nightline13.github.io/nightline/', pwMode = null, pwBusy = false, recovering = false, resetCooldown = 0;
+  function resetRedirect(){ return /^https?:$/.test(location.protocol) ? location.origin + location.pathname : LIVE_URL; }
+  function cleanUrlAuth(){ try { if (/access_token|refresh_token|error_code|type=recovery/.test(location.hash) || /[?&](code|error_code|error)=/.test(location.search)) history.replaceState(null, '', location.pathname); } catch(e){} }
+  /* auth params Supabase appends to the redirect: #access_token=..&refresh_token=..&type=recovery, or #error=..&error_code=otp_expired&error_description=.. */
+  function urlAuth(){
+    var h = new URLSearchParams(String(location.hash || '').replace(/^#/, '')), q = new URLSearchParams(location.search || '');
+    var g = function(k){ return h.get(k) || q.get(k); };
+    return { type:g('type'), access:h.get('access_token'), refresh:h.get('refresh_token'), error:g('error_code') || g('error'), desc:g('error_description') || '' };
+  }
+  function friendlyResetError(e){
+    var m = String(e && (e.message || e) || ''), code = e && (e.code || e.error_code) || '', st = e && e.status;
+    if (st === 429 || /rate.?limit|too many|over_email_send_rate_limit|only request this after/i.test(m + ' ' + code)){
+      var sec = /after (\d+) seconds?/i.exec(m);
+      return sec ? 'Please wait ' + sec[1] + ' seconds before requesting another link.' : 'Too many reset emails were sent recently \u2014 wait a while (up to an hour) and try again.';
+    }
+    if (/offline|failed to fetch|network|load failed/i.test(m)) return 'Couldn\u2019t reach the server \u2014 check your connection and try again.';
+    return null;   /* anything else: stay neutral */
+  }
+  var NEUTRAL = 'If an account exists for that email, we sent a reset link. Open it on this device to set a new password.';
+  function showForgot(msg, kind){
+    $('authForm').hidden = true; $('forgotForm').hidden = false; $('authView').querySelector('.tag').hidden = true;
+    if (!$('fEmail').value) $('fEmail').value = $('aEmail').value.trim();
+    var m = $('fMsg'); m.textContent = msg || ''; m.className = 'auth-msg' + (kind ? ' ' + kind : '');
+  }
+  function showSignIn(){ $('forgotForm').hidden = true; $('authForm').hidden = false; $('authView').querySelector('.tag').hidden = false; }
+  $('aForgot').onclick = function(){ showForgot(''); setTimeout(function(){ try { $('fEmail').focus(); } catch(e){} }, 50); };
+  $('fBack').onclick = function(){ showSignIn(); authMsg(''); };
+  $('fEmail').addEventListener('input', function(){ this.classList.remove('bad'); });
+  $('forgotForm').onsubmit = function(e){
+    e.preventDefault();
+    var email = $('fEmail').value.trim(), m = $('fMsg');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ m.textContent = 'Enter a valid email address.'; m.className = 'auth-msg err'; $('fEmail').classList.add('bad'); return; }
+    if (Date.now() < resetCooldown){ m.textContent = 'Reset link sent \u2014 check your inbox (and spam). You can send another in a minute.'; m.className = 'auth-msg'; return; }
+    $('fSend').disabled = true; $('fSend').style.opacity = '.6'; m.textContent = 'Sending\u2026'; m.className = 'auth-msg';
+    var done = function(){ $('fSend').disabled = false; $('fSend').style.opacity = ''; };
+    getSupabase().then(function(sb){ return sb.auth.resetPasswordForEmail(email, { redirectTo: resetRedirect() }); }).then(function(r){
+      done(); var fe = r && r.error ? friendlyResetError(r.error) : null;
+      if (fe){ m.textContent = fe; m.className = 'auth-msg err'; return; }
+      resetCooldown = Date.now() + 60000; m.textContent = NEUTRAL; m.className = 'auth-msg ok';
+    }, function(err){ done(); m.textContent = friendlyResetError(err) || 'Something went wrong \u2014 try again.'; m.className = 'auth-msg err'; });
+  };
+  function openPw(mode, msg){
+    pwMode = mode; var u = Store.user();
+    $('pwTitle').textContent = mode === 'change' ? 'Change password' : 'Set a new password';
+    $('pwSub').textContent = u ? (mode === 'change' ? 'Signed in as ' : 'Choose a new password for ') + u.email + '.' : '';
+    $('pwUser').value = u ? u.email : '';
+    $('pNew').value = $('pConf').value = ''; $('pNew').classList.remove('bad'); $('pConf').classList.remove('bad');
+    $('pwResend').hidden = true; pwMsg(msg || '');
+    openSheet('pwSheet'); setTimeout(function(){ try { $('pNew').focus(); } catch(e){} }, 250);
+  }
+  function pwMsg(t, kind){ var m = $('pwMsg'); m.textContent = t || ''; m.className = 'auth-msg' + (kind ? ' ' + kind : ''); }
+  ['pNew','pConf'].forEach(function(id){ $(id).addEventListener('input', function(){ this.classList.remove('bad'); pwMsg(''); }); });
+  function expiredLink(){
+    recovering = false; cleanUrlAuth(); closeSheets(true);
+    var m = Store.savedMode(), u = Store.savedUser();
+    if (m === 'cloud' && u){   /* already signed in on this device: carry on, just say so */
+      if (Store.mode() !== 'cloud') Store.useCloud(u, null);
+      connectCloud(); toast('This reset link expired \u2014 send a new one'); return;
+    }
+    showAuth(); showForgot('This reset link expired \u2014 send a new one.', 'err');
+  }
+  $('pwResend').onclick = function(){ var u = Store.user(); var done = function(){ Store.signOutCleanup(); showAuth(); $('fEmail').value = u ? u.email : ''; showForgot('Send a new reset link below.'); }; pwBusy = true; (sbClient ? sbClient.auth.signOut() : Promise.resolve()).then(done, done).then(function(){ pwBusy = false; }); };
+  $('pwForm').onsubmit = function(e){
+    e.preventDefault();
+    var a = $('pNew').value, b = $('pConf').value;
+    if (a.length < 6){ $('pNew').classList.add('bad'); return pwMsg('Password must be at least 6 characters.', 'err'); }
+    if (a !== b){ $('pConf').classList.add('bad'); return pwMsg('Passwords don\u2019t match.', 'err'); }
+    $('pwSave').disabled = true; $('pwSave').style.opacity = '.6'; pwMsg('Saving\u2026');
+    var done = function(){ $('pwSave').disabled = false; $('pwSave').style.opacity = ''; };
+    getSupabase().then(function(sb){ return sb.auth.updateUser({ password: a }); }).then(function(r){
+      done();
+      if (r && r.error){
+        var m = String(r.error.message || ''), code = r.error.code || '';
+        if (/same_password|different from the old/i.test(code + ' ' + m)) return pwMsg('Choose a password different from your current one.', 'err');
+        if (/weak_password|weak|should be at least/i.test(code + ' ' + m)) return pwMsg('That password is too weak \u2014 try a longer one.', 'err');
+        if (/reauthentication/i.test(code + ' ' + m)) return pwMsg('For security, sign out and use \u201cForgot password?\u201d to set a new one.', 'err');
+        if (/session|jwt|expired|invalid|not authenticated|missing/i.test(code + ' ' + m)){
+          if (pwMode === 'recovery'){ pwMsg('This reset link expired \u2014 send a new one.', 'err'); $('pwResend').hidden = false; return; }
+          return pwMsg('Your session ended \u2014 sign out and sign in again.', 'err');
+        }
+        return pwMsg(friendlyAuthError(r.error), 'err');
+      }
+      var wasRecovery = pwMode === 'recovery'; recovering = false; pwMode = null; cleanUrlAuth(); closeSheets();
+      toast(wasRecovery ? 'Password updated \u2014 you\u2019re signed in' : 'Password updated');
+    }, function(err){ done(); pwMsg(friendlyAuthError(err), 'err'); });
+  };
+  /* recovery link opened: sign in with the recovery session, then ask for the new password */
+  function startRecovery(user){
+    if (pwMode === 'recovery' && $('pwSheet').classList.contains('open')) return;
+    recovering = true; hideAuth(); showSignIn();
+    var u = Store.user();
+    if (Store.mode() !== 'cloud' || !u || u.id !== user.id) Store.useCloud({ id:user.id, email:user.email }, sbClient);
+    else Store.attachClient(sbClient);
+    cleanUrlAuth(); openPw('recovery');
+  }
+  function handleRecoveryUrl(p){
+    if (p.error){ return expiredLink(); }
+    recovering = true; $('authView').classList.remove('open');
+    getSupabase().then(function(sb){
+      return sb.auth.getSession().then(function(r){
+        var s = r && r.data && r.data.session;
+        if (s && s.user) return s;
+        if (p.access && p.refresh) return sb.auth.setSession({ access_token:p.access, refresh_token:p.refresh }).then(function(x){ if (x && x.error) throw x.error; return x && x.data && x.data.session; });
+        return null;
+      });
+    }).then(function(s){
+      if (!s || !s.user) return expiredLink();
+      startRecovery(s.user);
+    }, function(){ expiredLink(); });
+  }
+
+  (function startup(){
+    var p = urlAuth();
+    if (p.type === 'recovery' || (p.error && /otp_expired|access_denied|expired|invalid/i.test(p.error + ' ' + p.desc))) return handleRecoveryUrl(p);
+    var m = Store.savedMode(), u = Store.savedUser();
+    if (m === 'cloud' && u){ Store.useCloud(u, null); connectCloud(); }
+    else if (m !== 'local') showAuth();
+  })();
+  oddsField(); renderAccount(); render();
+})();
+</script>
+<script>if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });</script>
+</body>
+</html>
